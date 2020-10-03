@@ -1,0 +1,23 @@
+{
+  "name": "zipbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node .",
+    "build": "tsc",
+    "postinstall": "npm run build",
+    "develop": "nodemon --ext ts --exec 'tsc && node dist/index.js'"
+  },
+  "author": "Spencer Summerville <me@grenuttag.com>",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^14.11.2",
+    "discord.js": "^12.3.1",
+    "typescript": "^4.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
