@@ -1,11 +1,11 @@
-import { Client, Message, MessageAttachment, MessageEmbed } from "discord.js";
+import { Client, Message, MessageEmbed } from "discord.js";
 import reactions from "./reactions.js";
 
 let client: Client = new Client();
 let count: number = 0;
 
-client.on("message", (msg: Message) => {
-  if (msg.content.includes("unzip") || msg.content.includes("UNZIP")) {
+client.on("message", (message: Message) => {
+  if (message.content.match(/unzip/i) !== null) {
     count += 1;
 
     let randomImage: string =
@@ -15,7 +15,7 @@ client.on("message", (msg: Message) => {
       .setImage(randomImage)
       .setFooter(`${count}`);
 
-    msg.reply(response);
+    message.reply(response);
   }
 });
 
