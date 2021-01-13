@@ -11,7 +11,7 @@ async function setCount() {
 
   try {
     let countString = String(count);
-    let countFile = await writeFile("count.txt", countString);
+    let countFile = await writeFile("count.txt", countString + "\n");
 
     return countFile
   } catch (error) {
