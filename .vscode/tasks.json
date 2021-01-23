@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "develop",
+      "problemMatcher": [],
+      "label": "Develop",
+      "detail": "Recompile TypeScript files after every file change",
+    },
+  ]
+}
