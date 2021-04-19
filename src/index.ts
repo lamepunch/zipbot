@@ -1,45 +1,77 @@
-import { readFile, writeFile } from "fs/promises"
-import { Client, Message, MessageEmbed } from "discord.js";
+import { Client, Guild, Message, MessageEmbed } from "discord.js";
+import { PrismaClient } from "@prisma/client";
 
-import reactions from "./reactions.js";
+import reactions from "./reactions";
 
+let prisma: PrismaClient = new PrismaClient();
 let client: Client = new Client();
+
 let count: number = 0;
 
-async function setCount() {
-  count += 1;
+client.on("guildCreate", async (guild: Guild) => {
+  // Whenever Zipbot joins a new server, create a server
+  // entry in the database
+  let createServer = await prisma.server.create({
+    data: {
+      id: guild.id,
+      name: guild.name,
+    },
+  });
+});
 
-  try {
-    let countString = String(count);
-    let countFile = await writeFile("count.txt", countString + "\n");
+client.on("message", async (message: Message) => {
+  let validMessage =
+    message.content.match(/unzip/i) !== null &&
+    message.author.bot !== true &&
+    message.channel.type === "text" &&
+    message.guild !== null;
 
-    return countFile
-  } catch (error) {
-    console.log("Unable to update command invocation count", error);
-  }
-}
+  if (validMessage) {
+    let createInvocation = await prisma.invocation.create({
+      data: {
+        user: {
+          connectOrCreate: {
+            create: {
+              name: message.author.username,
+              id: message.author.id,
+            },
+            where: {
+              id: message.author.id,
+            },
+          },
+        },
+        server: {
+          connect: { id: message.guild.id },
+        },
+        channel: {
+          connectOrCreate: {
+            create: {
+              id: message.channel.id,
+              name: message.channel.id,
+              server: { connect: { id: message.guild.id } },
+            },
+            where: {
+              id: message.channel.id,
+            },
+          },
+        },
+      },
+    });
 
-try {
-  let countFile: Buffer = await readFile("count.txt");
-  let countNumber: number = Number(countFile.toString());
+    let invocationCount = await prisma.invocation.count({
+      where: { serverId: message.guild.id },
+    });
 
-  count = countNumber;
-} catch (error) {
-  console.log("Unable to load initial command invocation count", error);
-}
+    if (createInvocation && invocationCount) {
+      let randomImage: string =
+        reactions[Math.floor(Math.random() * reactions.length)];
 
-client.on("message", (message: Message) => {
-  if (message.content.match(/unzip/i) !== null) {
-    setCount();
+      let response: MessageEmbed = new MessageEmbed()
+        .setImage(randomImage)
+        .setFooter(`#${invocationCount}`);
 
-    let randomImage: string =
-      reactions[Math.floor(Math.random() * reactions.length)];
-
-    let response: MessageEmbed = new MessageEmbed()
-      .setImage(randomImage)
-      .setFooter(`${count}`);
-
-    message.reply(response);
+      message.channel.send(`${message.author} unzipped:`, response);
+    }
   }
 });
 

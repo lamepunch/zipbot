@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Server {
+  id   String @id
+  name String
+
+  channels    Channel[]
+  invocations Invocation[]
+}
+
+model User {
+  id          String       @id
+  name        String
+  invocations Invocation[]
+}
+
+model Channel {
+  id          String       @id
+  name        String
+  server      Server       @relation(fields: [serverId], references: [id])
+  serverId    String
+  invocations Invocation[]
+}
+
+model Invocation {
+  id        Int      @id @default(autoincrement())
+  invokedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  server    Server?  @relation(fields: [serverId], references: [id])
+  channel   Channel? @relation(fields: [channelId], references: [id])
+  userId    String
+  serverId  String?
+  channelId String?
+}

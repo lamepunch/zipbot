@@ -7,16 +7,21 @@
   "type": "module",
   "scripts": {
     "start": "tsc && node .",
-    "develop": "nodemon --ext ts --exec 'tsc && node dist/index.js'"
+    "develop": "ts-node-dev -r esm --transpile-only src/index.ts"
   },
   "author": "Spencer Summerville <me@grenuttag.com>",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^12.3.1"
+    "@prisma/client": "^2.21.2",
+    "discord.js": "^12.3.1",
+    "keyv": "^4.0.3"
   },
   "devDependencies": {
+    "@types/keyv": "^3.1.1",
     "@types/node": "^14.11.2",
-    "nodemon": "^2.0.4",
+    "esm": "^3.2.25",
+    "prisma": "^2.21.2",
+    "ts-node-dev": "^1.1.6",
     "typescript": "^4.0.3"
   }
 }
