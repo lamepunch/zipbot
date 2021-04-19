@@ -4,17 +4,16 @@
   "version": "1.1.0",
   "description": "",
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
-    "start": "tsc && node .",
+    "start": "node .",
+    "build": "tsc",
     "develop": "ts-node-dev -r esm --transpile-only src/index.ts"
   },
   "author": "Spencer Summerville <me@grenuttag.com>",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^2.21.2",
-    "discord.js": "^12.3.1",
-    "keyv": "^4.0.3"
+    "discord.js": "^12.3.1"
   },
   "devDependencies": {
     "@types/keyv": "^3.1.1",

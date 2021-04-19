@@ -2,10 +2,11 @@
   "compilerOptions": {
     "incremental": true,
     "target": "esnext",
-    "module": "esnext",
+    "module": "commonjs",
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
+    "lib": ["esnext"],
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
