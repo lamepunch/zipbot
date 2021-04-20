@@ -47,7 +47,7 @@ client.on("message", async (message: Message) => {
           connectOrCreate: {
             create: {
               id: message.channel.id,
-              name: message.channel.id,
+              name: message.channel.name,
               server: { connect: { id: message.guild.id } },
             },
             where: {
