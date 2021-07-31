@@ -103,15 +103,15 @@ client.on("message", async (message: Message) => {
 
     function constructEmbed(data: LeaderboardEntry[]): MessageEmbed {
       // Convert the leaderboard data into an embed
-      let entries: EmbedFieldData[] = data
-        .slice(0, 10)
-        .map(({ position, username, invocations }: LeaderboardEntry) => ({
+      let entries: EmbedFieldData[] = data.map(
+        ({ position, username, invocations }: LeaderboardEntry) => ({
           name: `${position}. ${username}`,
           value: `${invocations} total unzips`,
-        }));
+        })
+      );
 
       let response: MessageEmbed = new MessageEmbed()
-        .setTitle("Zipbot Leaderboard")
+        .setTitle("Leaderboard")
         .addFields(entries)
         .setFooter("Updated every 30 minutes");
 
@@ -127,6 +127,7 @@ client.on("message", async (message: Message) => {
     if (isCacheStale) {
       // Cache is stale, fetch invocation counts from the database,
       let counts = await prisma.user.findMany({
+        take: 5,
         orderBy: { invocations: { count: "desc" } },
         include: { _count: true },
       });
