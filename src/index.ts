@@ -1,25 +1,38 @@
+import fs from "fs";
+
 import {
   Client,
-  EmbedFieldData,
+  Collection,
   Guild,
-  Message,
   MessageEmbed,
+  Message,
+  Intents,
+  MessageOptions,
 } from "discord.js";
-import { PrismaClient, Server } from "@prisma/client";
 
+import prisma from "./prisma";
+import { Server } from "@prisma/client";
+
+import leaderboard from "./commands/leaderboard";
 import reactions from "./reactions";
 
-let prisma: PrismaClient = new PrismaClient();
-let client: Client = new Client();
+let client: Client = new Client({
+  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+});
+//@ts-ignore
+client.commands = new Collection();
+//@ts-ignore
+client.commands.set("leaderboard", leaderboard);
 
-let cachedLeaderboard: LeaderboardEntry[] = [];
-let lastCountFetch: Date | null = null;
+// let commandFiles = fs
+//   .readdirSync("./commands")
+//   .filter((file) => file.endsWith(".js"));
 
-interface LeaderboardEntry {
-  position: number;
-  username: string;
-  invocations: number;
-}
+// commandFiles.forEach((file) => {
+//   let command = require(`./commands/${file}`);
+//   //@ts-ignore
+//   client.commands.set(command.data.name, command);
+// });
 
 client.on("guildCreate", async (guild: Guild) => {
   // Whenever Zipbot joins a new server, create a server
@@ -32,11 +45,11 @@ client.on("guildCreate", async (guild: Guild) => {
   });
 });
 
-client.on("message", async (message: Message) => {
+client.on("messageCreate", async (message: Message) => {
   let isValidMessage: boolean =
     message.content.match(/unzip/i) !== null &&
     message.author.bot === false &&
-    message.channel.type === "text" &&
+    message.channel.type === "GUILD_TEXT" &&
     message.guild !== null;
 
   if (isValidMessage) {
@@ -82,73 +95,18 @@ client.on("message", async (message: Message) => {
         .setImage(randomImage)
         .setFooter(`#${invocationCount}`);
 
-      message.channel.send(`${message.author} unzipped:`, response);
-    }
-  }
+      let messageReply: MessageOptions = {
+        embeds: [
+          {
+            image: { url: randomImage },
+            footer: { text: "#" + invocationCount },
+            color: "#bf40bf",
+          },
+        ],
+      };
 
-  if (message.content === "!leaderboard") {
-    const THIRTY_MINUTES_IN_MILLISECONDS = 1800000;
-
-    function determineCacheState(): boolean {
-      if (lastCountFetch === null) {
-        return true;
-      } else {
-        let invokedAt = lastCountFetch.getTime();
-        let messageTime = message.createdAt.getTime();
-        let cooldownDelta = invokedAt - messageTime;
-
-        return cooldownDelta > THIRTY_MINUTES_IN_MILLISECONDS;
-      }
-    }
-
-    function constructEmbed(data: LeaderboardEntry[]): MessageEmbed {
-      // Convert the leaderboard data into an embed
-      let entries: EmbedFieldData[] = data.map(
-        ({ position, username, invocations }: LeaderboardEntry) => ({
-          name: `${position}. ${username}`,
-          value: `${invocations} total unzips`,
-        })
-      );
-
-      let response: MessageEmbed = new MessageEmbed()
-        .setTitle("Leaderboard")
-        .addFields(entries)
-        .setFooter("Updated every 30 minutes");
-
-      return response;
-    }
-
-    function sendMessage(data: LeaderboardEntry[]) {
-      let response = constructEmbed(data);
-      message.channel.send(response);
-    }
-
-    let isCacheStale = determineCacheState();
-    if (isCacheStale) {
-      // Cache is stale, fetch invocation counts from the database,
-      let counts = await prisma.user.findMany({
-        take: 5,
-        orderBy: { invocations: { count: "desc" } },
-        include: { _count: true },
-      });
-
-      // Convert the results into an intermediate data structure
-      let leaderboard: LeaderboardEntry[] = counts.map((user, index) => ({
-        position: index + 1,
-        username: user.name,
-        invocations: user._count !== null ? user._count.invocations : 0,
-      }));
-
-      console.log("Caching leaderboard!");
-      // Cache the leaderboard
-      cachedLeaderboard = leaderboard;
-      lastCountFetch = new Date();
-
-      // Construct the embed and send it to the channel
-      sendMessage(leaderboard);
-    } else {
-      console.log("Retrieving cached leaderboard!");
-      sendMessage(cachedLeaderboard);
+      // TODO: Replace this with `message.reply`
+      message.reply(messageReply);
     }
   }
 });
