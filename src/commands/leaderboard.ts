@@ -1,12 +1,13 @@
-import prisma from "../prisma";
-import { MessageEmbed, EmbedFieldData, CommandInteraction } from "discord.js";
+import {
+  EmbedFieldData,
+  CommandInteraction,
+  InteractionReplyOptions,
+} from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
 
-interface LeaderboardEntry {
-  position: number;
-  username: string;
-  invocations: number;
-}
+import { LeaderboardEntry } from "../types";
+import { RESPONSE_COLOR } from "../constants";
+import prisma from "../prisma";
 
 const THIRTY_MINUTES_IN_MILLISECONDS = 1800000;
 
@@ -25,7 +26,10 @@ function determineCacheState(interaction: CommandInteraction): boolean {
   }
 }
 
-function constructEmbed(data: LeaderboardEntry[]): MessageEmbed {
+async function sendMessage(
+  interaction: CommandInteraction,
+  data: LeaderboardEntry[]
+) {
   // Convert the leaderboard data into an embed
   let entries: EmbedFieldData[] = data.map(
     ({ position, username, invocations }: LeaderboardEntry) => ({
@@ -34,27 +38,32 @@ function constructEmbed(data: LeaderboardEntry[]): MessageEmbed {
     })
   );
 
-  let response: MessageEmbed = new MessageEmbed()
-    .setTitle("Leaderboard")
-    .addFields(entries)
-    .setFooter("Updated every 30 minutes");
+  let response: InteractionReplyOptions = {
+    embeds: [
+      {
+        title: "Global Leaderboard",
+        fields: entries,
+        color: RESPONSE_COLOR,
+        footer: { text: "⏱️ Updated every 30 minutes" },
+      },
+    ],
+    ephemeral: true,
+  };
 
-  return response;
+  await interaction.reply(response);
 }
 
 export default {
   data: new SlashCommandBuilder()
     .setName("leaderboard")
     .setDescription("See who's the biggest and the baddest"),
+
   async execute(interaction: CommandInteraction) {
-    async function sendMessage(data: LeaderboardEntry[]) {
-      let response = constructEmbed(data);
-      await interaction.reply({ ephemeral: true });
-    }
+    // Take fresh or cached leaderboard data and send it to the user
 
     let isCacheStale = determineCacheState(interaction);
     if (isCacheStale) {
-      // Cache is stale, fetch invocation counts from the database,
+      // Cache is stale, fetch invocation counts from the database
       let counts = await prisma.user.findMany({
         take: 5,
         orderBy: { invocations: { count: "desc" } },
@@ -68,16 +77,15 @@ export default {
         invocations: user._count !== null ? user._count.invocations : 0,
       }));
 
-      console.log("Caching leaderboard!");
       // Cache the leaderboard
       cachedLeaderboard = leaderboard;
       lastCountFetch = new Date();
 
-      // Construct the embed and send it to the channel
-      await sendMessage(leaderboard);
+      // Send to the user
+      await sendMessage(interaction, leaderboard);
     } else {
-      console.log("Retrieving cached leaderboard!");
-      await sendMessage(cachedLeaderboard);
+      // We have a cached leaderboard, send it to the user
+      await sendMessage(interaction, cachedLeaderboard);
     }
   },
 };

@@ -1,38 +1,18 @@
-import fs from "fs";
-
-import {
-  Client,
-  Collection,
-  Guild,
-  MessageEmbed,
-  Message,
-  Intents,
-  MessageOptions,
-} from "discord.js";
-
-import prisma from "./prisma";
+import { Client, Collection, Guild, Message, Intents } from "discord.js";
 import { Server } from "@prisma/client";
 
-import leaderboard from "./commands/leaderboard";
-import reactions from "./reactions";
+import { Command } from "./types";
+import prisma from "./prisma";
+
+import ReactCommand from "./commands/react";
+import LeaderboardCommand from "./commands/leaderboard";
 
 let client: Client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 });
-//@ts-ignore
-client.commands = new Collection();
-//@ts-ignore
-client.commands.set("leaderboard", leaderboard);
 
-// let commandFiles = fs
-//   .readdirSync("./commands")
-//   .filter((file) => file.endsWith(".js"));
-
-// commandFiles.forEach((file) => {
-//   let command = require(`./commands/${file}`);
-//   //@ts-ignore
-//   client.commands.set(command.data.name, command);
-// });
+let commands = new Collection<string, Command>();
+commands.set("leaderboard", LeaderboardCommand);
 
 client.on("guildCreate", async (guild: Guild) => {
   // Whenever Zipbot joins a new server, create a server
@@ -46,68 +26,34 @@ client.on("guildCreate", async (guild: Guild) => {
 });
 
 client.on("messageCreate", async (message: Message) => {
-  let isValidMessage: boolean =
+  let isZippable: boolean =
     message.content.match(/unzip/i) !== null &&
     message.author.bot === false &&
     message.channel.type === "GUILD_TEXT" &&
     message.guild !== null;
 
-  if (isValidMessage) {
-    let createInvocation = await prisma.invocation.create({
-      data: {
-        user: {
-          connectOrCreate: {
-            create: {
-              name: message.author.username,
-              id: message.author.id,
-            },
-            where: {
-              id: message.author.id,
-            },
-          },
-        },
-        server: {
-          connect: { id: message?.guild?.id },
-        },
-        channel: {
-          connectOrCreate: {
-            create: {
-              id: message.channel.id,
-              // @ts-ignore
-              name: message.channel.name,
-              server: { connect: { id: message?.guild?.id } },
-            },
-            where: {
-              id: message.channel.id,
-            },
-          },
-        },
-      },
-    });
+  if (isZippable) {
+    ReactCommand(message);
+  }
+});
 
-    let invocationCount = createInvocation.id;
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
+  let command = commands.get(interaction.commandName);
 
-    if (createInvocation) {
-      let randomImage: string =
-        reactions[Math.floor(Math.random() * reactions.length)];
-
-      let response: MessageEmbed = new MessageEmbed()
-        .setImage(randomImage)
-        .setFooter(`#${invocationCount}`);
-
-      let messageReply: MessageOptions = {
-        embeds: [
-          {
-            image: { url: randomImage },
-            footer: { text: "#" + invocationCount },
-            color: "#bf40bf",
-          },
-        ],
-      };
-
-      // TODO: Replace this with `message.reply`
-      message.reply(messageReply);
+  try {
+    if (command) {
+      await command.execute(interaction);
+    } else {
+      throw new Error("Command not found");
     }
+  } catch (error) {
+    console.error(error);
+    await interaction.reply({
+      content:
+        "There was an error executing your command. Please try again later.",
+      ephemeral: true,
+    });
   }
 });
 
