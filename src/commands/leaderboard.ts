@@ -6,7 +6,7 @@ import {
 import { SlashCommandBuilder } from "@discordjs/builders";
 
 import { LeaderboardEntry } from "../types";
-import { RESPONSE_COLOR } from "../constants";
+import { RESPONSE_COLOR, LEADERBOARD_EMOJIS } from "../constants";
 import prisma from "../prisma";
 
 const THIRTY_MINUTES_IN_MILLISECONDS = 1800000;
@@ -34,7 +34,7 @@ async function sendMessage(
   let entries: EmbedFieldData[] = data.map(
     ({ position, username, invocations }: LeaderboardEntry) => ({
       name: `${position}. ${username}`,
-      value: `${invocations} total unzips`,
+      value: `${LEADERBOARD_EMOJIS[position]} ${invocations} total unzips`,
     })
   );
 

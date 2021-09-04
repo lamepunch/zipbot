@@ -1,7 +1,6 @@
 import { Guild, Message, MessageOptions, TextChannel } from "discord.js";
 
-import { RESPONSE_COLOR } from "../constants";
-import reactions from "../reactions";
+import { REACTIONS, RESPONSE_COLOR } from "../constants";
 import prisma from "../prisma";
 
 export default async function ReactCommand(message: Message) {
@@ -43,7 +42,7 @@ export default async function ReactCommand(message: Message) {
 
   if (createInvocation) {
     let randomImage: string =
-      reactions[Math.floor(Math.random() * reactions.length)];
+      REACTIONS[Math.floor(Math.random() * REACTIONS.length)];
 
     let response: MessageOptions = {
       embeds: [
