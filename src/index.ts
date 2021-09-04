@@ -1,17 +1,23 @@
-import { Client, Guild, Message, MessageEmbed } from "discord.js";
-import { PrismaClient } from "@prisma/client";
+import { Client, Collection, Guild, Message, Intents } from "discord.js";
+import { Server } from "@prisma/client";
 
-import reactions from "./reactions";
+import { Command } from "./types";
+import prisma from "./prisma";
 
-let prisma: PrismaClient = new PrismaClient();
-let client: Client = new Client();
+import ReactCommand from "./commands/react";
+import LeaderboardCommand from "./commands/leaderboard";
 
-let count: number = 0;
+let client: Client = new Client({
+  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+});
+
+let commands = new Collection<string, Command>();
+commands.set("leaderboard", LeaderboardCommand);
 
 client.on("guildCreate", async (guild: Guild) => {
   // Whenever Zipbot joins a new server, create a server
   // entry in the database
-  let createServer = await prisma.server.create({
+  let createServer: Server = await prisma.server.create({
     data: {
       id: guild.id,
       name: guild.name,
@@ -19,59 +25,35 @@ client.on("guildCreate", async (guild: Guild) => {
   });
 });
 
-client.on("message", async (message: Message) => {
-  let validMessage =
+client.on("messageCreate", async (message: Message) => {
+  let isZippable: boolean =
     message.content.match(/unzip/i) !== null &&
-    message.author.bot !== true &&
-    message.channel.type === "text" &&
+    message.author.bot === false &&
+    message.channel.type === "GUILD_TEXT" &&
     message.guild !== null;
 
-  if (validMessage) {
-    let createInvocation = await prisma.invocation.create({
-      data: {
-        user: {
-          connectOrCreate: {
-            create: {
-              name: message.author.username,
-              id: message.author.id,
-            },
-            where: {
-              id: message.author.id,
-            },
-          },
-        },
-        server: {
-          connect: { id: message.guild.id },
-        },
-        channel: {
-          connectOrCreate: {
-            create: {
-              id: message.channel.id,
-              name: message.channel.name,
-              server: { connect: { id: message.guild.id } },
-            },
-            where: {
-              id: message.channel.id,
-            },
-          },
-        },
-      },
-    });
+  if (isZippable) {
+    ReactCommand(message);
+  }
+});
 
-    let invocationCount = await prisma.invocation.count({
-      where: { serverId: message.guild.id },
-    });
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
+  let command = commands.get(interaction.commandName);
 
-    if (createInvocation && invocationCount) {
-      let randomImage: string =
-        reactions[Math.floor(Math.random() * reactions.length)];
-
-      let response: MessageEmbed = new MessageEmbed()
-        .setImage(randomImage)
-        .setFooter(`#${invocationCount}`);
-
-      message.channel.send(`${message.author} unzipped:`, response);
+  try {
+    if (command) {
+      await command.execute(interaction);
+    } else {
+      throw new Error("Command not found");
     }
+  } catch (error) {
+    console.error(error);
+    await interaction.reply({
+      content:
+        "There was an error executing your command. Please try again later.",
+      ephemeral: true,
+    });
   }
 });
 
