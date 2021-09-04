@@ -34,7 +34,7 @@ async function sendMessage(
   let entries: EmbedFieldData[] = data.map(
     ({ position, username, invocations }: LeaderboardEntry) => ({
       name: `${position}. ${username}`,
-      value: `${LEADERBOARD_EMOJIS[position]} ${invocations} total unzips`,
+      value: `${LEADERBOARD_EMOJIS[position - 1]} ${invocations} total unzips`,
     })
   );
 
