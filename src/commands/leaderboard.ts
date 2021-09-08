@@ -66,7 +66,7 @@ export default {
       // Cache is stale, fetch invocation counts from the database
       let counts = await prisma.user.findMany({
         take: 5,
-        orderBy: { invocations: { count: "desc" } },
+        orderBy: { invocations: { _count: "desc" } },
         include: { _count: true },
       });
 
