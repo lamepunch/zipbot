@@ -10,7 +10,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Server {
+model Guild {
   id   String @id
   name String
 
@@ -27,8 +27,8 @@ model User {
 model Channel {
   id          String       @id
   name        String
-  server      Server       @relation(fields: [serverId], references: [id])
-  serverId    String
+  guild       Guild        @relation(fields: [guildId], references: [id])
+  guildId     String
   invocations Invocation[]
 }
 
@@ -36,9 +36,9 @@ model Invocation {
   id        Int      @id @default(autoincrement())
   invokedAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
-  server    Server?  @relation(fields: [serverId], references: [id])
+  guild     Guild?   @relation(fields: [guildId], references: [id])
   channel   Channel? @relation(fields: [channelId], references: [id])
   userId    String
-  serverId  String?
+  guildId   String?
   channelId String?
 }
