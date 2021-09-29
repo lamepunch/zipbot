@@ -1,9 +1,11 @@
-import { CommandInteraction } from "@discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { CommandInteraction, Message } from "@discord.js";
 
 interface Command {
-  data: SlashCommandBuilder;
-  execute: (interaction: CommandInteraction) => Promise<void>;
+  data: any;
+  execute: (
+    interaction?: CommandInteraction,
+    message?: Message
+  ) => Promise<void>;
 }
 
 interface LeaderboardEntry {

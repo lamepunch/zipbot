@@ -1,5 +1,5 @@
 import { Client, Collection, Guild, Message, Intents } from "discord.js";
-import { Server } from "@prisma/client";
+import { Guild as Server } from "@prisma/client";
 
 import { Command } from "./types";
 import prisma from "./prisma";
@@ -12,15 +12,16 @@ let client: Client = new Client({
 });
 
 let commands = new Collection<string, Command>();
+commands.set("react", ReactCommand);
 commands.set("leaderboard", LeaderboardCommand);
 
 client.on("guildCreate", async (guild: Guild) => {
-  // Whenever Zipbot joins a new server, create a server
-  // entry in the database
-  let createServer: Server = await prisma.server.create({
+  // Whenever Zipbot joins a new guild, create a new Guild entry in the database
+  let { id, name } = guild;
+  let createGuild: Server = await prisma.guild.create({
     data: {
-      id: guild.id,
-      name: guild.name,
+      id,
+      name,
     },
   });
 });
@@ -33,12 +34,15 @@ client.on("messageCreate", async (message: Message) => {
     message.guild !== null;
 
   if (isZippable) {
-    ReactCommand(message);
+    let react = commands.get("react");
+    if (react) {
+      await react.execute(message);
+    }
   }
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
+  if (!interaction.isCommand() || !interaction.isContextMenu()) return;
   let command = commands.get(interaction.commandName);
 
   try {
