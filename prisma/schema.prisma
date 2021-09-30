@@ -16,12 +16,15 @@ model Guild {
 
   channels    Channel[]
   invocations Invocation[]
+  quotes      Quote[]
 }
 
 model User {
   id          String       @id
   name        String
   invocations Invocation[]
+  quotes      Quote[]
+  submissions Quote[]      @relation("Submitter")
 }
 
 model Channel {
@@ -30,6 +33,7 @@ model Channel {
   guild       Guild        @relation(fields: [guildId], references: [id])
   guildId     String
   invocations Invocation[]
+  quotes      Quote[]
 }
 
 model Invocation {
@@ -41,4 +45,19 @@ model Invocation {
   userId    String
   guildId   String?
   channelId String?
+}
+
+model Quote {
+  id          Int      @id @default(autoincrement())
+  messageId   String   @unique
+  createdAt   DateTime
+  content     String
+  user        User     @relation(fields: [userId], references: [id])
+  submitter   User     @relation(name: "Submitter", fields: [submitterId], references: [id])
+  guild       Guild    @relation(fields: [guildId], references: [id])
+  channel     Channel  @relation(fields: [channelId], references: [id])
+  userId      String
+  submitterId String
+  guildId     String
+  channelId   String
 }
