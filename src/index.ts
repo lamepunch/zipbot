@@ -19,17 +19,18 @@ commands.set("leaderboard", LeaderboardCommand);
 commands.set("quote", QuoteCommand);
 commands.set("highlight", HighlightCommand);
 
-console.table(commands);
-
 client.on("guildCreate", async (guild: Guild) => {
   // Whenever Zipbot joins a new guild, create a new Guild entry in the database
   let { id, name } = guild;
+  // @TODO: Make this an upsert instead of a create
   let createGuild: Server = await prisma.guild.create({
     data: {
       id,
       name,
     },
   });
+  // @TODO: Add a check to see if the guild was created, if not
+  // inform the bot administrator
 });
 
 client.on("messageCreate", async (message: Message) => {
@@ -50,8 +51,8 @@ client.on("messageCreate", async (message: Message) => {
 client.on("interactionCreate", async (interaction) => {
   let { commandName } = interaction;
   let command = commands.get(commandName.toLowerCase());
+
   if (command) {
-    console.log("Executing command " + commandName);
     await command.execute(interaction);
   } else {
     await interaction.reply({
