@@ -1,16 +1,17 @@
 import { Guild, Message, MessageOptions, TextChannel } from "discord.js";
 
+import { Command } from "../types";
 import { REACTIONS, RESPONSE_COLOR } from "../constants";
 import prisma from "../prisma";
 
-export default {
+const ReactCommand: Command<Message> = {
   data: {
     name: "react",
     description: "React to a message with a random image.",
   },
 
-  async execute(message: Message) {
-    let channel = message.channel as TextChannel;
+  async execute(response) {
+    let channel = response.channel as TextChannel;
     let guild = channel.guild as Guild;
 
     let createInvocation = await prisma.invocation.create({
@@ -18,11 +19,11 @@ export default {
         user: {
           connectOrCreate: {
             create: {
-              name: message.author.username,
-              id: message.author.id,
+              name: response.author.username,
+              id: response.author.id,
             },
             where: {
-              id: message.author.id,
+              id: response.author.id,
             },
           },
         },
@@ -50,7 +51,7 @@ export default {
       let randomImage: string =
         REACTIONS[Math.floor(Math.random() * REACTIONS.length)];
 
-      let response: MessageOptions = {
+      response.reply({
         embeds: [
           {
             image: { url: randomImage },
@@ -58,9 +59,9 @@ export default {
             color: RESPONSE_COLOR,
           },
         ],
-      };
-
-      message.reply(response);
+      });
     }
   },
 };
+
+export default ReactCommand;

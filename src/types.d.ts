@@ -1,11 +1,17 @@
-import { CommandInteraction, Message } from "@discord.js";
+import {
+  CommandInteraction,
+  ContextMenuInteraction,
+  Message,
+} from "discord.js";
 
-interface Command {
+type CommandTypes =
+  | Command<Message>
+  | Command<CommandInteraction>
+  | Command<ContextMenuInteraction>;
+
+interface Command<T> {
   data: any;
-  execute: (
-    interaction?: CommandInteraction,
-    message?: Message
-  ) => Promise<void>;
+  execute: (response: T) => Promise<void>;
 }
 
 interface LeaderboardEntry {

@@ -4,7 +4,7 @@ import {
   InteractionReplyOptions,
 } from "discord.js";
 
-import { LeaderboardEntry } from "../types";
+import { Command, LeaderboardEntry } from "../types";
 import { RESPONSE_COLOR, LEADERBOARD_EMOJIS } from "../constants";
 import prisma from "../prisma";
 
@@ -52,16 +52,16 @@ async function sendMessage(
   await interaction.reply(response);
 }
 
-export default {
+const LeaderboardCommand: Command<CommandInteraction> = {
   data: {
     name: "leaderboard",
     description: "See who's the biggest and the baddest",
   },
 
-  async execute(interaction: CommandInteraction) {
+  async execute(response) {
     // Take fresh or cached leaderboard data and send it to the user
 
-    let isCacheStale = determineCacheState(interaction);
+    let isCacheStale = determineCacheState(response);
     if (isCacheStale) {
       // Cache is stale, fetch invocation counts from the database
       let counts = await prisma.user.findMany({
@@ -82,10 +82,12 @@ export default {
       lastCountFetch = new Date();
 
       // Send to the user
-      await sendMessage(interaction, leaderboard);
+      await sendMessage(response, leaderboard);
     } else {
       // We have a cached leaderboard, send it to the user
-      await sendMessage(interaction, cachedLeaderboard);
+      await sendMessage(response, cachedLeaderboard);
     }
   },
 };
+
+export default LeaderboardCommand;
