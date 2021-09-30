@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node .",
     "build": "tsc",
-    "develop": "ts-node-dev --respawn src/index.ts"
+    "develop": "NODE_ENV=development ts-node-dev --transpile-only --rs src/index.ts"
   },
   "author": "Spencer Summerville <me@grenuttag.com>",
   "license": "ISC",

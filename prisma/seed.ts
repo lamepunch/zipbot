@@ -1,22 +1,30 @@
-import { PrismaClient } from "@prisma/client"
-const prisma = new PrismaClient()
+import prisma from "../src/prisma";
 
 async function main() {
-  let generalUse = await prisma.server.upsert({
+  let generalUse = await prisma.guild.upsert({
     where: { id: "356603723470077954" },
     update: {},
     create: {
       id: "356603723470077954",
-      name: "General Use"
-    }
-  })
+      name: "General Use",
+    },
+  });
+
+  let craneWife = await prisma.guild.upsert({
+    where: { id: "829607606867066911" },
+    update: {},
+    create: {
+      id: "829607606867066911",
+      name: "Cranewife",
+    },
+  });
 }
 
 main()
-  .catch(e => {
-    console.error(e)
-    process.exit(1)
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });
