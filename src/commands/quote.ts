@@ -1,7 +1,11 @@
-import { CommandInteraction } from "discord.js";
+import random from "random";
+import { CommandInteraction, Snowflake } from "discord.js";
 
 import { Command } from "../types";
+import { QUOTE_EMBED_TITLES } from "../constants";
 import prisma from "../prisma";
+
+const mention = (id: Snowflake) => `<@${id}>`;
 
 const QuoteCommand: Command<CommandInteraction> = {
   data: {
@@ -11,21 +15,50 @@ const QuoteCommand: Command<CommandInteraction> = {
 
   async execute(data) {
     let quoteCount = await prisma.quote.count();
-    let quoteId = Math.floor(Math.random() * (quoteCount - 1)) + 1;
+    let quoteId = random.int(1, quoteCount);
 
     let randomQuote = await prisma.quote.findFirst({
       where: { id: quoteId },
-      include: { user: true },
     });
 
     if (randomQuote) {
-      let { id, createdAt, user, content } = randomQuote;
+      let {
+        id,
+        messageId,
+        createdAt,
+        userId,
+        submitterId,
+        guildId,
+        channelId,
+        content,
+      } = randomQuote;
+
+      let randomTitle =
+        QUOTE_EMBED_TITLES[random.int(0, QUOTE_EMBED_TITLES.length - 1)];
+
       await data.reply({
         embeds: [
           {
-            author: { name: user.name },
+            title: randomTitle,
             description: `>>> ${content}`,
             timestamp: createdAt,
+            fields: [
+              {
+                name: "Wisdom dispenser",
+                value: mention(userId),
+                inline: true,
+              },
+              {
+                name: "Inscriptor of history",
+                value: mention(submitterId),
+                inline: true,
+              },
+              {
+                name: "Permalink",
+                value: `[View message](https://discord.com/channels/${guildId}/${channelId}/${messageId})`,
+                inline: true,
+              },
+            ],
             footer: {
               text: `Quote #${id}`,
             },

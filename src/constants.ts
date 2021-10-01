@@ -33,3 +33,11 @@ export const LEADERBOARD_EMOJIS: string[] = [
   "<a:cagedance:848621679814246401>",
   "<:youtried:769717318337953812>",
 ];
+
+export const QUOTE_EMBED_TITLES: string[] = [
+  "Wise words to heed",
+  "Really makes you think",
+  "I didn't really think of it that way",
+  "Well, when you put it that way",
+  "That really gets the neurons firing!",
+];

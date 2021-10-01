@@ -1,3 +1,4 @@
+import random from "random";
 import { Guild, Message, TextChannel } from "discord.js";
 
 import { Command } from "../types";
@@ -48,8 +49,7 @@ const ReactCommand: Command<Message> = {
     let invocationCount = createInvocation.id;
 
     if (createInvocation) {
-      let randomImage: string =
-        REACTIONS[Math.floor(Math.random() * REACTIONS.length)];
+      let randomImage: string = REACTIONS[random.int(0, REACTIONS.length - 1)];
 
       response.reply({
         embeds: [
