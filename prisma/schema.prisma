@@ -51,6 +51,7 @@ model Quote {
   id          Int      @id @default(autoincrement())
   messageId   String   @unique
   createdAt   DateTime
+  submittedAt DateTime @default(now())
   content     String
   user        User     @relation(fields: [userId], references: [id])
   submitter   User     @relation(name: "Submitter", fields: [submitterId], references: [id])
