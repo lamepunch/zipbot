@@ -29,14 +29,13 @@ client.on("guildCreate", async (guild: Guild) => {
       name,
     },
   });
-  // @TODO: Add a check to see if the guild was created, if not
-  // inform the bot administrator
+  // @TODO: Add a check to see if the guild was created, if not inform the bot administrator
 });
 
 client.on("messageCreate", async (message: Message) => {
   let isZippable: boolean =
     message.content.match(/unzip/i) !== null &&
-    message.author.bot === false &&
+    !message.author.bot &&
     message.channel.type === "GUILD_TEXT" &&
     message.guild !== null;
 
@@ -49,16 +48,18 @@ client.on("messageCreate", async (message: Message) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-  let { commandName } = interaction;
-  let command = commands.get(commandName.toLowerCase());
+  if (interaction.isCommand() || interaction.isContextMenu()) {
+    let { commandName } = interaction;
+    let command = commands.get(commandName.toLowerCase());
 
-  if (command) {
-    await command.execute(interaction);
-  } else {
-    await interaction.reply({
-      content: "Command was unable to be executed. Please try again later.",
-      ephemeral: true,
-    });
+    if (command) {
+      await command.execute(interaction);
+    } else {
+      await interaction.reply({
+        content: "Command was unable to be executed. Please try again later.",
+        ephemeral: true,
+      });
+    }
   }
 });
 
