@@ -2,10 +2,10 @@ import random from "random";
 import { CommandInteraction, Snowflake } from "discord.js";
 
 import { Command } from "../types";
-import { QUOTE_EMBED_TITLES } from "../constants";
+import { QUOTE_EMBED_TITLES, RESPONSE_COLOR } from "../constants";
 import prisma from "../prisma";
 
-const mention = (id: Snowflake) => `<@${id}>`;
+const constructMention = (emoji: string, id: Snowflake) => `${emoji} <@${id}>`;
 
 const QuoteCommand: Command<CommandInteraction> = {
   data: {
@@ -39,29 +39,31 @@ const QuoteCommand: Command<CommandInteraction> = {
       await data.reply({
         embeds: [
           {
-            title: randomTitle,
-            description: `>>> ${content}`,
+            author: {
+              name: randomTitle,
+              icon_url:
+                "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/285/thinking-face_1f914.png",
+            },
+            description: `${content}`,
             timestamp: createdAt,
             fields: [
               {
-                name: "Wisdom dispenser",
-                value: mention(userId),
+                name: "Wisdom Dispenser",
+                value: constructMention("🧙", userId),
                 inline: true,
               },
               {
-                name: "Inscriptor of history",
-                value: mention(submitterId),
+                name: "Inscriptor of History",
+                value: constructMention("🤠", submitterId),
                 inline: true,
               },
               {
                 name: "Permalink",
-                value: `[View message](https://discord.com/channels/${guildId}/${channelId}/${messageId})`,
-                inline: true,
+                value: `[➡️ View](https://discord.com/channels/${guildId}/${channelId}/${messageId})`,
               },
             ],
-            footer: {
-              text: `Quote #${id}`,
-            },
+            footer: { text: `Quote #${id}` },
+            color: RESPONSE_COLOR,
           },
         ],
       });
