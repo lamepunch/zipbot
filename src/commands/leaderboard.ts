@@ -3,9 +3,8 @@ import {
   CommandInteraction,
   InteractionReplyOptions,
 } from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
 
-import { LeaderboardEntry } from "../types";
+import { Command, LeaderboardEntry } from "../types";
 import { RESPONSE_COLOR, LEADERBOARD_EMOJIS } from "../constants";
 import prisma from "../prisma";
 
@@ -53,12 +52,13 @@ async function sendMessage(
   await interaction.reply(response);
 }
 
-export default {
-  data: new SlashCommandBuilder()
-    .setName("leaderboard")
-    .setDescription("See who's the biggest and the baddest"),
+const LeaderboardCommand: Command<CommandInteraction> = {
+  data: {
+    name: "leaderboard",
+    description: "See who's the biggest and the baddest",
+  },
 
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction) {
     // Take fresh or cached leaderboard data and send it to the user
 
     let isCacheStale = determineCacheState(interaction);
@@ -89,3 +89,5 @@ export default {
     }
   },
 };
+
+export default LeaderboardCommand;
