@@ -68,8 +68,16 @@ const QuoteCommand: Command<CommandInteraction> = {
         ],
       });
     } else {
+      let errorMessage =
+        "Unable to retrieve a random quote. Please try again later.";
+
+      if (quoteCount === 0) {
+        errorMessage =
+          "There are no quotes in the database. Please submit a quote first.";
+      }
+
       await interaction.reply({
-        content: "Unable to retrieve a random quote. Please try again later.",
+        content: errorMessage,
         ephemeral: true,
       });
     }
