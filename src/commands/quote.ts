@@ -13,7 +13,7 @@ const QuoteCommand: Command<CommandInteraction> = {
     description: "Get a random quote",
   },
 
-  async execute(data) {
+  async execute(interaction) {
     let quoteCount = await prisma.quote.count();
     let quoteId = random.int(1, quoteCount);
 
@@ -36,7 +36,7 @@ const QuoteCommand: Command<CommandInteraction> = {
       let randomTitle =
         QUOTE_EMBED_TITLES[random.int(0, QUOTE_EMBED_TITLES.length - 1)];
 
-      await data.reply({
+      await interaction.reply({
         embeds: [
           {
             author: {
@@ -68,7 +68,7 @@ const QuoteCommand: Command<CommandInteraction> = {
         ],
       });
     } else {
-      await data.reply({
+      await interaction.reply({
         content: "Unable to retrieve a random quote. Please try again later.",
         ephemeral: true,
       });

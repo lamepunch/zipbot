@@ -11,8 +11,9 @@ const ReactCommand: Command<Message> = {
     description: "React to a message with a random image.",
   },
 
-  async execute(response) {
-    let channel = response.channel as TextChannel;
+  async execute(interaction) {
+    let { author } = interaction;
+    let channel = interaction.channel as TextChannel;
     let guild = channel.guild as Guild;
 
     let createInvocation = await prisma.invocation.create({
@@ -20,11 +21,11 @@ const ReactCommand: Command<Message> = {
         user: {
           connectOrCreate: {
             create: {
-              name: response.author.username,
-              id: response.author.id,
+              name: author.username,
+              id: author.id,
             },
             where: {
-              id: response.author.id,
+              id: author.id,
             },
           },
         },
@@ -51,7 +52,7 @@ const ReactCommand: Command<Message> = {
     if (createInvocation) {
       let randomImage: string = REACTIONS[random.int(0, REACTIONS.length - 1)];
 
-      response.reply({
+      interaction.reply({
         embeds: [
           {
             image: { url: randomImage },

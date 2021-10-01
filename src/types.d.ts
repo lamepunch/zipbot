@@ -11,7 +11,7 @@ type CommandTypes =
 
 interface Command<T> {
   data: any;
-  execute: (response: T) => Promise<void>;
+  execute: (interaction: T) => Promise<void>;
 }
 
 interface LeaderboardEntry {

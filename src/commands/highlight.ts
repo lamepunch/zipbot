@@ -12,9 +12,9 @@ const HighlightCommand: Command<ContextMenuInteraction> = {
     default_permission: false,
   },
 
-  async execute(response) {
-    let { guildId, targetId } = response;
-    let channel = response.channel as TextChannel;
+  async execute(interaction) {
+    let { guildId, targetId, user } = interaction;
+    let channel = interaction.channel as TextChannel;
 
     if (!guildId || !targetId || !channel) {
       throw new Error("Message cannot be retrieved");
@@ -59,11 +59,11 @@ const HighlightCommand: Command<ContextMenuInteraction> = {
             submitter: {
               connectOrCreate: {
                 create: {
-                  id: response.user.id,
-                  name: response.user.username,
+                  id: user.id,
+                  name: user.username,
                 },
                 where: {
-                  id: response.user.id,
+                  id: user.id,
                 },
               },
             },
@@ -71,7 +71,7 @@ const HighlightCommand: Command<ContextMenuInteraction> = {
           },
         });
 
-        await response.reply({
+        await interaction.reply({
           content: `Quote #${newQuote.id} was successfully added!`,
           ephemeral: true,
         });
@@ -93,13 +93,13 @@ const HighlightCommand: Command<ContextMenuInteraction> = {
           }
         }
 
-        await response.reply({
+        await interaction.reply({
           content: `${errorMessage}, ${errorReason}`,
           ephemeral: true,
         });
       }
     } else {
-      await response.reply({
+      await interaction.reply({
         content: "This quote is not eligible to be submitted",
         ephemeral: true,
       });

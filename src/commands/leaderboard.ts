@@ -58,10 +58,10 @@ const LeaderboardCommand: Command<CommandInteraction> = {
     description: "See who's the biggest and the baddest",
   },
 
-  async execute(response) {
+  async execute(interaction) {
     // Take fresh or cached leaderboard data and send it to the user
 
-    let isCacheStale = determineCacheState(response);
+    let isCacheStale = determineCacheState(interaction);
     if (isCacheStale) {
       // Cache is stale, fetch invocation counts from the database
       let counts = await prisma.user.findMany({
@@ -82,10 +82,10 @@ const LeaderboardCommand: Command<CommandInteraction> = {
       lastCountFetch = new Date();
 
       // Send to the user
-      await sendMessage(response, leaderboard);
+      await sendMessage(interaction, leaderboard);
     } else {
       // We have a cached leaderboard, send it to the user
-      await sendMessage(response, cachedLeaderboard);
+      await sendMessage(interaction, cachedLeaderboard);
     }
   },
 };
