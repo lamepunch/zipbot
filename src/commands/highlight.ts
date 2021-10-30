@@ -16,15 +16,24 @@ const HighlightCommand: Command<ContextMenuInteraction> = {
     let { guildId, targetId, user } = interaction;
     let channel = interaction.channel as TextChannel;
 
+    // TODO: Add multiple error exceptions for each failure
     if (!guildId || !targetId || !channel) {
       throw new Error("Message cannot be retrieved");
     }
 
+    // Retreive the message that was highlighted
     let { author, createdAt, content } = await channel.messages.fetch(targetId);
+
+    // Only allow submissions in text channels and only from regular users
     let isSubmittable: boolean =
       author.bot === false && channel.type === "GUILD_TEXT";
 
     if (isSubmittable) {
+      // Check for an existing quote in the database first
+      let existingQuote = await prisma.quote.findUnique({
+        where: { messageId: targetId },
+      });
+
       try {
         let newQuote = await prisma.quote.create({
           data: {
