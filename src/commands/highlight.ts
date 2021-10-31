@@ -1,5 +1,4 @@
 import { ContextMenuInteraction, TextChannel } from "discord.js";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 
 import { Command } from "../types";
 import prisma from "../prisma";
@@ -16,16 +15,33 @@ const HighlightCommand: Command<ContextMenuInteraction> = {
     let { guildId, targetId, user } = interaction;
     let channel = interaction.channel as TextChannel;
 
+    // Helper function to reply to the user with an ephemeral message
+    let reply = async (content: string) =>
+      await interaction.reply({ content, ephemeral: true });
+
+    // TODO: Add multiple error exceptions for each failure
     if (!guildId || !targetId || !channel) {
       throw new Error("Message cannot be retrieved");
     }
 
+    // Retreive the message that was highlighted
     let { author, createdAt, content } = await channel.messages.fetch(targetId);
+
+    // Only allow submissions from text channels and non-bot users
     let isSubmittable: boolean =
       author.bot === false && channel.type === "GUILD_TEXT";
 
     if (isSubmittable) {
       try {
+        // Check to see if an existing quote already exists
+        let existingQuote = await prisma.quote.count({
+          where: { messageId: targetId },
+        });
+
+        if (existingQuote) {
+          throw new Error("Quote already exists");
+        }
+
         let newQuote = await prisma.quote.create({
           data: {
             messageId: targetId,
@@ -71,38 +87,32 @@ const HighlightCommand: Command<ContextMenuInteraction> = {
           },
         });
 
-        await interaction.reply({
-          content: `Quote #${newQuote.id} was successfully added!`,
-          ephemeral: true,
-        });
+        // Add a reaction to notify that this message has been highlighted
+        await channel.messages.react(targetId, "⭐");
+
+        // Send a confirmation message to the user
+        await reply(`Quote #${newQuote.id} was successfully added!`);
       } catch (error) {
         // Log the error in development
         if (process.env.NODE_ENV === "development") {
           console.error(error);
         }
 
+        let existingQuoteError: boolean =
+          error instanceof Error && error.message === "Quote already exists";
+
         let errorMessage: string = "The quote was unable to be submitted";
         let errorReason: string =
           "due to an unknown error. Please try again later.";
 
-        // Check to see if this is a Prisma error
-        if (error instanceof PrismaClientKnownRequestError) {
-          // Unique constraint failed, quote already exists
-          if (error.code === "P2002") {
-            errorReason = "as it already exists in the database.";
-          }
+        if (existingQuoteError) {
+          errorReason = "as it already exists in the database.";
         }
 
-        await interaction.reply({
-          content: `${errorMessage}, ${errorReason}`,
-          ephemeral: true,
-        });
+        await reply(`${errorMessage} ${errorReason}`);
       }
     } else {
-      await interaction.reply({
-        content: "This quote is not eligible to be submitted",
-        ephemeral: true,
-      });
+      await reply("This quote is not eligible to be submitted.");
     }
   },
 };
