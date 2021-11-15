@@ -33,7 +33,8 @@ const QuoteCommand: Command<CommandInteraction> = {
         content,
       } = randomQuote;
 
-      let randomTitle = QUOTE_EMBED_TITLES[random.int(0, QUOTE_EMBED_TITLES.length)];
+      let randomTitle =
+        QUOTE_EMBED_TITLES[random.int(0, QUOTE_EMBED_TITLES.length - 1)];
 
       await interaction.reply({
         embeds: [
