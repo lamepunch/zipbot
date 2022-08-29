@@ -5,9 +5,12 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node .",
     "build": "tsc",
-    "develop": "ts-node-dev --transpile-only --rs src/index.ts"
+    "start": "node .",
+    "start:prod": "npm run prisma:migrate && npm start",
+    "start:dev": "ts-node-dev --transpile-only --rs src/index.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy"
   },
   "author": "Spencer Summerville <me@grenuttag.com>",
   "license": "ISC",

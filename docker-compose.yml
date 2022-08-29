@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      - NODE_ENV
+      - DATABASE_URL
+      - TOKEN
+    network_mode: service:db
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+
+  db:
+    image: 'postgres'
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    volumes:
+      - zipbot-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  zipbot-postgres-data: null
