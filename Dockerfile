@@ -6,7 +6,6 @@ COPY tsconfig.json ./
 COPY ./prisma ./prisma
 
 RUN npm install
-RUN npm run prisma:generate
 
 # Copy source code and compile TypeScript files to JavaScript
 COPY ./src ./src
@@ -16,6 +15,7 @@ FROM node:16-alpine
 WORKDIR /opt/app
 
 COPY --from=builder /opt/app/dist ./dist
+COPY ./prisma ./prisma
 COPY package*.json ./
 
 RUN npm install --omit=dev
