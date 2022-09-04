@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      - NODE_ENV
+      - DATABASE_URL
+      - TOKEN
+    network_mode: service:db
+
+  db:
+    image: 'postgres:14.5-alpine'
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data: null
