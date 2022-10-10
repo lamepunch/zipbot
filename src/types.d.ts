@@ -1,13 +1,13 @@
 import {
   CommandInteraction,
-  ContextMenuInteraction,
+  ContextMenuCommandInteraction,
   Message,
 } from "discord.js";
 
 type CommandTypes =
   | Command<Message>
   | Command<CommandInteraction>
-  | Command<ContextMenuInteraction>;
+  | Command<ContextMenuCommandInteraction>;
 
 interface Command<T> {
   data: any;

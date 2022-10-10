@@ -36,15 +36,36 @@ model Channel {
   quotes      Quote[]
 }
 
+/// Specific category of a reaction.
+model ReactionType {
+  id     Int             @id @default(autoincrement())
+  name   String
+  slug   String          @unique
+  images ReactionImage[]
+}
+
+/// Image of a reaction belonging to a category.
+model ReactionImage {
+  id          Int          @id @default(autoincrement())
+  categoryId  Int
+  name        String?
+  url         String
+  count       Int          @default(0)
+  category    ReactionType @relation(fields: [categoryId], references: [id])
+  invocations Invocation[]
+}
+
 model Invocation {
-  id        Int      @id @default(autoincrement())
-  invokedAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  guild     Guild?   @relation(fields: [guildId], references: [id])
-  channel   Channel? @relation(fields: [channelId], references: [id])
+  id        Int            @id @default(autoincrement())
+  invokedAt DateTime       @default(now())
+  user      User           @relation(fields: [userId], references: [id])
+  guild     Guild?         @relation(fields: [guildId], references: [id])
+  channel   Channel?       @relation(fields: [channelId], references: [id])
   userId    String
   guildId   String?
   channelId String?
+  image     ReactionImage? @relation(fields: [imageId], references: [id])
+  imageId   Int?
 }
 
 model Quote {

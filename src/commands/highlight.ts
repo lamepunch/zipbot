@@ -1,9 +1,13 @@
-import { ContextMenuInteraction, TextChannel } from "discord.js";
+import {
+  ContextMenuCommandInteraction,
+  TextChannel,
+  ChannelType,
+} from "discord.js";
 
 import { Command } from "../types";
 import prisma from "../prisma";
 
-const HighlightCommand: Command<ContextMenuInteraction> = {
+const HighlightCommand: Command<ContextMenuCommandInteraction> = {
   data: {
     name: "Highlight",
     description: "Add a quote to the database",
@@ -29,7 +33,7 @@ const HighlightCommand: Command<ContextMenuInteraction> = {
 
     // Only allow submissions from text channels and non-bot users
     let isSubmittable: boolean =
-      author.bot === false && channel.type === "GUILD_TEXT";
+      author.bot === false && channel.type === ChannelType.GuildText;
 
     if (isSubmittable) {
       try {

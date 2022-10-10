@@ -55,7 +55,7 @@ export const REACTIONS: string[] = [
   "https://i.imgur.com/nyZJRui.png",
 ];
 
-export const RESPONSE_COLOR: ColorResolvable = "#bf40bf";
+export const RESPONSE_COLOR: number = 12533951;
 
 export const LEADERBOARD_EMOJIS: string[] = [
   "<a:catjam:829075076779343963>",

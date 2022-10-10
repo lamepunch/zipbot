@@ -45,7 +45,7 @@ const QuoteCommand: Command<CommandInteraction> = {
                 "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/285/thinking-face_1f914.png",
             },
             description: `${content}`,
-            timestamp: createdAt,
+            timestamp: createdAt.toISOString(),
             fields: [
               {
                 name: "Wisdom Dispenser",

@@ -1,5 +1,5 @@
 import {
-  EmbedFieldData,
+  APIEmbedField,
   CommandInteraction,
   InteractionReplyOptions,
 } from "discord.js";
@@ -30,7 +30,7 @@ async function sendMessage(
   data: LeaderboardEntry[]
 ) {
   // Convert the leaderboard data into an embed
-  let entries: EmbedFieldData[] = data.map(
+  let entries: APIEmbedField[] = data.map(
     ({ position, username, invocations }: LeaderboardEntry) => ({
       name: `${position}. ${username}`,
       value: `${LEADERBOARD_EMOJIS[position - 1]} ${invocations} total unzips`,
@@ -68,6 +68,12 @@ const LeaderboardCommand: Command<CommandInteraction> = {
         take: 5,
         orderBy: { invocations: { _count: "desc" } },
         include: { _count: true },
+      });
+
+      let board = await prisma.invocation.groupBy({
+        by: ["userId"],
+        where: { guildId: interaction.guildId },
+        _count: { _all: true },
       });
 
       // Convert the results into an intermediate data structure
