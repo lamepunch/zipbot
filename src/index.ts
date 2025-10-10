@@ -1,5 +1,5 @@
-import { Client, Collection, Guild, Message, Intents } from "discord.js";
-import { Guild as Server } from "@prisma/client";
+import { Client, Collection, Guild, Message, GatewayIntentBits, ChannelType } from "discord.js";
+import { Guild as Server } from "./generated/prisma";
 
 import { Command } from "./types";
 import prisma from "./prisma";
@@ -10,7 +10,11 @@ import QuoteCommand from "./commands/quote";
 import HighlightCommand from "./commands/highlight";
 
 let client: Client = new Client({
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
 let commands = new Collection<string, Command<any>>();
@@ -25,7 +29,7 @@ client.on("guildCreate", async (guild: Guild) => {
   // @TODO: Make this an upsert instead of a create
   let createGuild: Server = await prisma.guild.create({
     data: {
-      id,
+      snowflakeId: id,
       name,
     },
   });
@@ -36,7 +40,7 @@ client.on("messageCreate", async (message: Message) => {
   let isZippable: boolean =
     message.content.match(/unzip/i) !== null &&
     !message.author.bot &&
-    message.channel.type === "GUILD_TEXT" &&
+    message.channel.type === ChannelType.GuildText &&
     message.guild !== null;
 
   if (isZippable) {
@@ -48,7 +52,7 @@ client.on("messageCreate", async (message: Message) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (interaction.isCommand() || interaction.isContextMenu()) {
+  if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
     let { commandName } = interaction;
     let command = commands.get(commandName.toLowerCase());
 

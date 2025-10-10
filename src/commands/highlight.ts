@@ -1,9 +1,9 @@
-import { ContextMenuInteraction, TextChannel } from "discord.js";
+import { ChannelType, MessageContextMenuCommandInteraction, TextChannel } from "discord.js";
 
 import { Command } from "../types";
 import prisma from "../prisma";
 
-const HighlightCommand: Command<ContextMenuInteraction> = {
+const HighlightCommand: Command<MessageContextMenuCommandInteraction> = {
   data: {
     name: "Highlight",
     description: "Add a quote to the database",
@@ -29,7 +29,7 @@ const HighlightCommand: Command<ContextMenuInteraction> = {
 
     // Only allow submissions from text channels and non-bot users
     let isSubmittable: boolean =
-      author.bot === false && channel.type === "GUILD_TEXT";
+      author.bot === false && channel.type === ChannelType.GuildText;
 
     if (isSubmittable) {
       try {
@@ -49,37 +49,37 @@ const HighlightCommand: Command<ContextMenuInteraction> = {
             user: {
               connectOrCreate: {
                 create: {
-                  id: author.id,
+                  snowflakeId: author.id,
                   name: author.username,
                 },
                 where: {
-                  id: author.id,
+                  snowflakeId: author.id,
                 },
               },
             },
             guild: {
-              connect: { id: guildId },
+              connect: { snowflakeId: guildId },
             },
             channel: {
               connectOrCreate: {
                 create: {
-                  id: channel.id,
+                  snowflakeId: channel.id,
                   name: channel.name,
-                  guild: { connect: { id: guildId } },
+                  guild: { connect: { snowflakeId: guildId } },
                 },
                 where: {
-                  id: channel.id,
+                  snowflakeId: channel.id,
                 },
               },
             },
             submitter: {
               connectOrCreate: {
                 create: {
-                  id: user.id,
+                  snowflakeId: user.id,
                   name: user.username,
                 },
                 where: {
-                  id: user.id,
+                  snowflakeId: user.id,
                 },
               },
             },

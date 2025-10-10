@@ -19,6 +19,12 @@ const QuoteCommand: Command<CommandInteraction> = {
 
     let randomQuote = await prisma.quote.findFirst({
       where: { id: quoteId },
+      include: {
+        user: true,
+        submitter: true,
+        guild: true,
+        channel: true,
+      },
     });
 
     if (randomQuote) {
@@ -26,10 +32,10 @@ const QuoteCommand: Command<CommandInteraction> = {
         id,
         messageId,
         createdAt,
-        userId,
-        submitterId,
-        guildId,
-        channelId,
+        user,
+        submitter,
+        guild,
+        channel,
         content,
       } = randomQuote;
 
@@ -45,21 +51,21 @@ const QuoteCommand: Command<CommandInteraction> = {
                 "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/285/thinking-face_1f914.png",
             },
             description: `${content}`,
-            timestamp: createdAt,
+            timestamp: createdAt.toISOString(),
             fields: [
               {
                 name: "Wisdom Dispenser",
-                value: constructMention("🧙", userId),
+                value: constructMention("🧙", user.snowflakeId),
                 inline: true,
               },
               {
                 name: "Inscriptor of History",
-                value: constructMention("🤠", submitterId),
+                value: constructMention("🤠", submitter.snowflakeId),
                 inline: true,
               },
               {
                 name: "Permalink",
-                value: `[➡️ View](https://discord.com/channels/${guildId}/${channelId}/${messageId})`,
+                value: `[➡️ View](https://discord.com/channels/${guild.snowflakeId}/${channel.snowflakeId}/${messageId})`,
               },
             ],
             footer: { text: `Quote #${id}` },

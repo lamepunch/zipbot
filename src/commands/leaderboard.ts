@@ -1,5 +1,5 @@
 import {
-  EmbedFieldData,
+  APIEmbedField,
   CommandInteraction,
   InteractionReplyOptions,
 } from "discord.js";
@@ -30,7 +30,7 @@ async function sendMessage(
   data: LeaderboardEntry[]
 ) {
   // Convert the leaderboard data into an embed
-  let entries: EmbedFieldData[] = data.map(
+  let entries: APIEmbedField[] = data.map(
     ({ position, username, invocations }: LeaderboardEntry) => ({
       name: `${position}. ${username}`,
       value: `${LEADERBOARD_EMOJIS[position - 1]} ${invocations} total unzips`,

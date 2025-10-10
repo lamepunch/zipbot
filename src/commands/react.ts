@@ -22,25 +22,25 @@ const ReactCommand: Command<Message> = {
           connectOrCreate: {
             create: {
               name: author.username,
-              id: author.id,
+              snowflakeId: author.id,
             },
             where: {
-              id: author.id,
+              snowflakeId: author.id,
             },
           },
         },
         guild: {
-          connect: { id: guild.id },
+          connect: { snowflakeId: guild.id },
         },
         channel: {
           connectOrCreate: {
             create: {
-              id: channel.id,
+              snowflakeId: channel.id,
               name: channel.name,
-              guild: { connect: { id: guild.id } },
+              guild: { connect: { snowflakeId: guild.id } },
             },
             where: {
-              id: channel.id,
+              snowflakeId: channel.id,
             },
           },
         },

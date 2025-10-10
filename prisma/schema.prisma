@@ -8,11 +8,13 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output = "../src/generated/prisma"
 }
 
 model Guild {
-  id   String @id
-  name String
+  id          Int    @id @default(autoincrement())
+  snowflakeId String @unique
+  name        String
 
   channels    Channel[]
   invocations Invocation[]
@@ -20,18 +22,22 @@ model Guild {
 }
 
 model User {
-  id          String       @id
+  id          Int    @id @default(autoincrement())
+  snowflakeId String @unique
   name        String
+
   invocations Invocation[]
   quotes      Quote[]
   submissions Quote[]      @relation("Submitter")
 }
 
 model Channel {
-  id          String       @id
+  id          Int    @id @default(autoincrement())
+  snowflakeId String @unique
   name        String
-  guild       Guild        @relation(fields: [guildId], references: [id])
-  guildId     String
+  guild       Guild  @relation(fields: [guildId], references: [id])
+  guildId     Int
+
   invocations Invocation[]
   quotes      Quote[]
 }
@@ -42,9 +48,9 @@ model Invocation {
   user      User     @relation(fields: [userId], references: [id])
   guild     Guild?   @relation(fields: [guildId], references: [id])
   channel   Channel? @relation(fields: [channelId], references: [id])
-  userId    String
-  guildId   String?
-  channelId String?
+  userId    Int
+  guildId   Int?
+  channelId Int?
 }
 
 model Quote {
@@ -57,8 +63,8 @@ model Quote {
   submitter   User     @relation(name: "Submitter", fields: [submitterId], references: [id])
   guild       Guild    @relation(fields: [guildId], references: [id])
   channel     Channel  @relation(fields: [channelId], references: [id])
-  userId      String
-  submitterId String
-  guildId     String
-  channelId   String
+  userId      Int
+  submitterId Int
+  guildId     Int
+  channelId   Int
 }
