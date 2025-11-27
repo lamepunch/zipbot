@@ -1,5 +1,5 @@
 import { Client, Collection, Guild, Message, GatewayIntentBits, ChannelType } from "discord.js";
-import { Guild as Server } from "./generated/prisma";
+import { Guild as Server } from "./generated/prisma/client";
 
 import { Command } from "./types";
 import prisma from "./prisma";

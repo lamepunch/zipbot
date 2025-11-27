@@ -3,11 +3,10 @@
 
 datasource db {
   provider = "postgres"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output = "../src/generated/prisma"
 }
 
@@ -43,14 +42,31 @@ model Channel {
 }
 
 model Invocation {
-  id        Int      @id @default(autoincrement())
-  invokedAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  guild     Guild?   @relation(fields: [guildId], references: [id])
-  channel   Channel? @relation(fields: [channelId], references: [id])
-  userId    Int
-  guildId   Int?
-  channelId Int?
+  id              Int            @id @default(autoincrement())
+  invokedAt       DateTime       @default(now())
+  user            User           @relation(fields: [userId], references: [id])
+  guild           Guild?         @relation(fields: [guildId], references: [id])
+  channel         Channel?       @relation(fields: [channelId], references: [id])
+  reactionImage   ReactionImage? @relation(fields: [reactionImageId], references: [id])
+  userId          Int
+  guildId         Int?
+  channelId       Int?
+  reactionImageId Int?
+}
+
+model ReactionCategory {
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
+  reactionImages ReactionImage[]
+}
+
+model ReactionImage {
+  id         Int              @id @default(autoincrement())
+  name       String
+  category   ReactionCategory @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  url        String
+  invocations Invocation[]
 }
 
 model Quote {
