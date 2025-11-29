@@ -1,4 +1,3 @@
-import random from "random";
 import { CommandInteraction, Snowflake } from "discord.js";
 
 import { Command } from "../types";
@@ -15,10 +14,8 @@ const QuoteCommand: Command<CommandInteraction> = {
 
   async execute(interaction) {
     let quoteCount = await prisma.quote.count();
-    let quoteId = random.int(1, quoteCount);
 
-    let randomQuote = await prisma.quote.findFirst({
-      where: { id: quoteId },
+    let randomQuote = await prisma.quote.findRandom({
       include: {
         user: true,
         submitter: true,
@@ -40,7 +37,7 @@ const QuoteCommand: Command<CommandInteraction> = {
       } = randomQuote;
 
       let randomTitle =
-        QUOTE_EMBED_TITLES[random.int(0, QUOTE_EMBED_TITLES.length - 1)];
+        QUOTE_EMBED_TITLES[Math.floor(Math.random() * QUOTE_EMBED_TITLES.length)];
 
       await interaction.reply({
         embeds: [

@@ -7,7 +7,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client"
-  output = "../src/generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 model Guild {
@@ -33,39 +33,50 @@ model User {
 model Channel {
   id          Int    @id @default(autoincrement())
   snowflakeId String @unique
-  name        String
-  guild       Guild  @relation(fields: [guildId], references: [id])
   guildId     Int
+  name        String
 
+  guild       Guild        @relation(fields: [guildId], references: [id])
   invocations Invocation[]
   quotes      Quote[]
 }
 
+model Command {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  invocations Invocation[]
+}
+
 model Invocation {
-  id              Int            @id @default(autoincrement())
-  invokedAt       DateTime       @default(now())
-  user            User           @relation(fields: [userId], references: [id])
-  guild           Guild?         @relation(fields: [guildId], references: [id])
-  channel         Channel?       @relation(fields: [channelId], references: [id])
-  reactionImage   ReactionImage? @relation(fields: [reactionImageId], references: [id])
+  id              Int      @id @default(autoincrement())
+  invokedAt       DateTime @default(now())
+  command         Command  @relation(fields: [commandId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
+  guild           Guild?   @relation(fields: [guildId], references: [id])
+  channel         Channel? @relation(fields: [channelId], references: [id])
+  reactionImage   Image?   @relation(fields: [reactionImageId], references: [id])
+  commandId       Int
   userId          Int
   guildId         Int?
   channelId       Int?
   reactionImageId Int?
 }
 
-model ReactionCategory {
-  id             Int             @id @default(autoincrement())
-  name           String          @unique
-  reactionImages ReactionImage[]
+model Category {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  images Image[]
 }
 
-model ReactionImage {
-  id         Int              @id @default(autoincrement())
+model Image {
+  id         Int    @id @default(autoincrement())
   name       String
-  category   ReactionCategory @relation(fields: [categoryId], references: [id])
   categoryId Int
   url        String
+
+  category    Category     @relation(fields: [categoryId], references: [id])
   invocations Invocation[]
 }
 
@@ -75,12 +86,12 @@ model Quote {
   createdAt   DateTime
   submittedAt DateTime @default(now())
   content     String
-  user        User     @relation(fields: [userId], references: [id])
-  submitter   User     @relation(name: "Submitter", fields: [submitterId], references: [id])
-  guild       Guild    @relation(fields: [guildId], references: [id])
-  channel     Channel  @relation(fields: [channelId], references: [id])
   userId      Int
   submitterId Int
   guildId     Int
   channelId   Int
+  user        User     @relation(fields: [userId], references: [id])
+  submitter   User     @relation(name: "Submitter", fields: [submitterId], references: [id])
+  guild       Guild    @relation(fields: [guildId], references: [id])
+  channel     Channel  @relation(fields: [channelId], references: [id])
 }

@@ -10,6 +10,16 @@ async function main() {
       name: "Lamepunch",
     },
   });
+
+  // Add the react command
+  let reactCommand = await prisma.command.upsert({
+    where: { name: "react" },
+    update: {},
+    create: {
+      name: "react",
+      description: "React to a message with a random image.",
+    },
+  });
 }
 
 main()

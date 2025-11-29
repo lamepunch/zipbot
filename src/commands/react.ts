@@ -1,8 +1,7 @@
-import random from "random";
 import { Guild, Message, TextChannel } from "discord.js";
 
 import { Command } from "../types";
-import { REACTIONS, RESPONSE_COLOR } from "../constants";
+import { RESPONSE_COLOR } from "../constants";
 import prisma from "../prisma";
 
 const ReactCommand: Command<Message> = {
@@ -15,6 +14,14 @@ const ReactCommand: Command<Message> = {
     let { author } = interaction;
     let channel = interaction.channel as TextChannel;
     let guild = channel.guild as Guild;
+
+    // Get a random image from the database
+    let randomImage = await prisma.image.findRandom({
+      select: {
+        id: true,
+        url: true,
+      },
+    });
 
     let createInvocation = await prisma.invocation.create({
       data: {
@@ -32,6 +39,9 @@ const ReactCommand: Command<Message> = {
         guild: {
           connect: { snowflakeId: guild.id },
         },
+        // @TODO: Change this or move createInvocation to index.ts that
+        // happens on every messageCreate/interactionCreate event
+        command: { connect: { name: "react" } },
         channel: {
           connectOrCreate: {
             create: {
@@ -44,18 +54,18 @@ const ReactCommand: Command<Message> = {
             },
           },
         },
+        reactionImage: { connect: { id: randomImage.id } },
       },
     });
 
+    // @TODO: This will need to be changed if command invocations are used for more than just reactions
     let invocationCount = createInvocation.id;
 
-    if (createInvocation) {
-      let randomImage: string = REACTIONS[random.int(0, REACTIONS.length - 1)];
-
+    if (createInvocation && randomImage) {
       interaction.reply({
         embeds: [
           {
-            image: { url: randomImage },
+            image: { url: randomImage.url },
             footer: { text: "#" + invocationCount },
             color: RESPONSE_COLOR,
           },

@@ -1,4 +1,11 @@
-import { Client, Collection, Guild, Message, GatewayIntentBits, ChannelType } from "discord.js";
+import {
+  Client,
+  Collection,
+  Guild,
+  Message,
+  GatewayIntentBits,
+  ChannelType,
+} from "discord.js";
 import { Guild as Server } from "./generated/prisma/client";
 
 import { Command } from "./types";
@@ -52,7 +59,10 @@ client.on("messageCreate", async (message: Message) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
+  if (
+    interaction.isChatInputCommand() ||
+    interaction.isMessageContextMenuCommand()
+  ) {
     let { commandName } = interaction;
     let command = commands.get(commandName.toLowerCase());
 
