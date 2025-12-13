@@ -1,5 +1,6 @@
 {
   "name": "zipbot",
+  "type": "module",
   "private": "true",
   "version": "2.1.0",
   "description": "",

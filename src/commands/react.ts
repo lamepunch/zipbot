@@ -1,8 +1,8 @@
 import { Guild, Message, TextChannel } from "discord.js";
 
-import { Command } from "../types";
-import { RESPONSE_COLOR } from "../constants";
-import prisma from "../prisma";
+import { Command } from "../types.js";
+import { RESPONSE_COLOR } from "../constants.js";
+import prisma from "../prisma.js";
 
 const ReactCommand: Command<Message> = {
   data: {
@@ -22,6 +22,12 @@ const ReactCommand: Command<Message> = {
         url: true,
       },
     });
+
+    if (!randomImage) {
+      interaction.reply({
+        content: "No reaction images found in the database.",
+      });
+    }
 
     let createInvocation = await prisma.invocation.create({
       data: {
@@ -61,17 +67,15 @@ const ReactCommand: Command<Message> = {
     // @TODO: This will need to be changed if command invocations are used for more than just reactions
     let invocationCount = createInvocation.id;
 
-    if (createInvocation && randomImage) {
-      interaction.reply({
-        embeds: [
-          {
-            image: { url: randomImage.url },
-            footer: { text: "#" + invocationCount },
-            color: RESPONSE_COLOR,
-          },
-        ],
-      });
-    }
+    interaction.reply({
+      embeds: [
+        {
+          image: { url: randomImage.url },
+          footer: { text: "#" + invocationCount },
+          color: RESPONSE_COLOR,
+        },
+      ],
+    });
   },
 };
 

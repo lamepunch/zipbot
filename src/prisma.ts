@@ -1,8 +1,8 @@
-import { PrismaClient } from "./generated/prisma/client";
+import { PrismaClient } from "./generated/prisma/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 
-import randomExtension from "./extensions/random";
+import randomExtension from "./extensions/random.js";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);

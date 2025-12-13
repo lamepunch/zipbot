@@ -1,8 +1,8 @@
 import { CommandInteraction, Snowflake } from "discord.js";
 
-import { Command } from "../types";
-import { QUOTE_EMBED_TITLES, RESPONSE_COLOR } from "../constants";
-import prisma from "../prisma";
+import { Command } from "../types.js";
+import { QUOTE_EMBED_TITLES, RESPONSE_COLOR } from "../constants.js";
+import prisma from "../prisma.js";
 
 const constructMention = (emoji: string, id: Snowflake) => `${emoji} <@${id}>`;
 

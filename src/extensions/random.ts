@@ -1,7 +1,7 @@
 // Taken from prisma-extension-random
 // https://github.com/nkeil/prisma-extension-random
 
-import { Prisma, User } from "../../src/generated/prisma/client";
+import { Prisma, User } from "../generated/prisma/client.js";
 
 // "User" types are used to simplify type inference
 

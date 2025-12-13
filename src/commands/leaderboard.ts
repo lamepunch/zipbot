@@ -4,9 +4,9 @@ import {
   InteractionReplyOptions,
 } from "discord.js";
 
-import { Command, LeaderboardEntry } from "../types";
-import { RESPONSE_COLOR, LEADERBOARD_EMOJIS } from "../constants";
-import prisma from "../prisma";
+import { Command, LeaderboardEntry } from "../types.js";
+import { RESPONSE_COLOR, LEADERBOARD_EMOJIS } from "../constants.js";
+import prisma from "../prisma.js";
 
 const THIRTY_MINUTES_IN_MILLISECONDS = 1800000;
 

@@ -6,15 +6,15 @@ import {
   GatewayIntentBits,
   ChannelType,
 } from "discord.js";
-import { Guild as Server } from "./generated/prisma/client";
+import { Guild as Server } from "./generated/prisma/client.js";
 
-import { Command } from "./types";
-import prisma from "./prisma";
+import { Command } from "./types.js";
+import prisma from "./prisma.js";
 
-import ReactCommand from "./commands/react";
-import LeaderboardCommand from "./commands/leaderboard";
-import QuoteCommand from "./commands/quote";
-import HighlightCommand from "./commands/highlight";
+import ReactCommand from "./commands/react.js";
+import LeaderboardCommand from "./commands/leaderboard.js";
+import QuoteCommand from "./commands/quote.js";
+import HighlightCommand from "./commands/highlight.js";
 
 let client: Client = new Client({
   intents: [

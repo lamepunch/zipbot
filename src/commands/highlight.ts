@@ -1,7 +1,7 @@
 import { ChannelType, MessageContextMenuCommandInteraction, TextChannel } from "discord.js";
 
-import { Command } from "../types";
-import prisma from "../prisma";
+import { Command } from "../types.js";
+import prisma from "../prisma.js";
 
 const HighlightCommand: Command<MessageContextMenuCommandInteraction> = {
   data: {
