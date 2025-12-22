@@ -13,8 +13,6 @@ const QuoteCommand: Command<CommandInteraction> = {
   },
 
   async execute(interaction) {
-    let quoteCount = await prisma.quote.count();
-
     let randomQuote = await prisma.quote.findRandom({
       include: {
         user: true,
@@ -37,15 +35,16 @@ const QuoteCommand: Command<CommandInteraction> = {
       } = randomQuote;
 
       let randomTitle =
-        QUOTE_EMBED_TITLES[Math.floor(Math.random() * QUOTE_EMBED_TITLES.length)];
+        QUOTE_EMBED_TITLES[
+          Math.floor(Math.random() * QUOTE_EMBED_TITLES.length)
+        ];
 
       await interaction.reply({
         embeds: [
           {
             author: {
               name: randomTitle,
-              icon_url:
-                "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/285/thinking-face_1f914.png",
+              icon_url: "https://images.lamepunch.com/thinking.webp",
             },
             description: `${content}`,
             timestamp: createdAt.toISOString(),
@@ -71,6 +70,8 @@ const QuoteCommand: Command<CommandInteraction> = {
         ],
       });
     } else {
+      let quoteCount = await prisma.quote.count();
+
       let errorMessage =
         "Unable to retrieve a random quote. Please try again later.";
 

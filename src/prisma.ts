@@ -4,12 +4,15 @@ import pg from "pg";
 
 import randomExtension from "./extensions/random.js";
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const { DATABASE_URL, NODE_ENV } = process.env;
+
+const pool = new pg.Pool({ connectionString: DATABASE_URL });
 const adapter = new PrismaPg(pool);
 
-let prisma = new PrismaClient({
+const prisma = new PrismaClient({
   adapter,
-  log: process.env.NODE_ENV === "production" ? [] : ["query", "info", "warn"],
+  log:
+    NODE_ENV === "production" ? ["warn", "error"] : ["query", "info", "warn"],
 }).$extends(randomExtension());
 
 export default prisma;

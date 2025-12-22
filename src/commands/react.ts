@@ -23,12 +23,6 @@ const ReactCommand: Command<Message> = {
       },
     });
 
-    if (!randomImage) {
-      interaction.reply({
-        content: "No reaction images found in the database.",
-      });
-    }
-
     let createInvocation = await prisma.invocation.create({
       data: {
         user: {
@@ -60,7 +54,7 @@ const ReactCommand: Command<Message> = {
             },
           },
         },
-        reactionImage: { connect: { id: randomImage.id } },
+        reactionImage: { connect: { id: randomImage!.id } },
       },
     });
 
@@ -70,7 +64,7 @@ const ReactCommand: Command<Message> = {
     interaction.reply({
       embeds: [
         {
-          image: { url: randomImage.url },
+          image: { url: randomImage!.url },
           footer: { text: "#" + invocationCount },
           color: RESPONSE_COLOR,
         },

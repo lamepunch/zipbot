@@ -20,6 +20,15 @@ async function main() {
       description: "React to a message with a random image.",
     },
   });
+
+  // Add the default reaction category
+  let unzipCategory = await prisma.category.upsert({
+    where: { name: "Unzips" },
+    update: {},
+    create: {
+      name: "Unzips",
+    },
+  });
 }
 
 main()
