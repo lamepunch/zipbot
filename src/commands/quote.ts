@@ -1,4 +1,4 @@
-import { CommandInteraction, Snowflake } from "discord.js";
+import { CommandInteraction, Snowflake, MessageFlags } from "discord.js";
 
 import { Command } from "../types.js";
 import { QUOTE_EMBED_TITLES, RESPONSE_COLOR } from "../constants.js";
@@ -82,7 +82,7 @@ const QuoteCommand: Command<CommandInteraction> = {
 
       await interaction.reply({
         content: errorMessage,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   },

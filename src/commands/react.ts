@@ -1,4 +1,4 @@
-import { Guild, Message, TextChannel } from "discord.js";
+import { Guild, Message, MessageFlags, TextChannel } from "discord.js";
 
 import { Command } from "../types.js";
 import { RESPONSE_COLOR } from "../constants.js";
@@ -12,6 +12,8 @@ const ReactCommand: Command<Message> = {
 
   async execute(interaction) {
     let { author } = interaction;
+    let { username, displayName } = author;
+
     let channel = interaction.channel as TextChannel;
     let guild = channel.guild as Guild;
 
@@ -19,17 +21,29 @@ const ReactCommand: Command<Message> = {
     let randomImage = await prisma.image.findRandom({
       select: {
         id: true,
-        url: true,
+        category: true,
+        stem: true,
+      },
+      // Limit results to the default category
+      where: {
+        category: {
+          id: 1,
+        },
       },
     });
+
+    // @ts-ignore
+    // Not sure why this is complaining...
+    let { id, category, stem } = randomImage;
 
     let createInvocation = await prisma.invocation.create({
       data: {
         user: {
           connectOrCreate: {
             create: {
-              name: author.username,
               snowflakeId: author.id,
+              username,
+              displayName,
             },
             where: {
               snowflakeId: author.id,
@@ -54,17 +68,21 @@ const ReactCommand: Command<Message> = {
             },
           },
         },
-        reactionImage: { connect: { id: randomImage!.id } },
+        reactionImage: { connect: { id } },
       },
     });
 
     // @TODO: This will need to be changed if command invocations are used for more than just reactions
     let invocationCount = createInvocation.id;
 
+    // Construct the url used in embed
+    let stemOrId = stem === null ? id : stem;
+    let url = `https://images.lamepunch.com/reactions/${category.name.toLowerCase()}/${stemOrId}.webp`;
+
     interaction.reply({
       embeds: [
         {
-          image: { url: randomImage!.url },
+          image: { url },
           footer: { text: "#" + invocationCount },
           color: RESPONSE_COLOR,
         },

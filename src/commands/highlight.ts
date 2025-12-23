@@ -1,4 +1,9 @@
-import { ChannelType, MessageContextMenuCommandInteraction, TextChannel } from "discord.js";
+import {
+  ChannelType,
+  MessageContextMenuCommandInteraction,
+  TextChannel,
+  MessageFlags,
+} from "discord.js";
 
 import { Command } from "../types.js";
 import prisma from "../prisma.js";
@@ -17,7 +22,7 @@ const HighlightCommand: Command<MessageContextMenuCommandInteraction> = {
 
     // Helper function to reply to the user with an ephemeral message
     let reply = async (content: string) =>
-      await interaction.reply({ content, ephemeral: true });
+      await interaction.reply({ content, flags: MessageFlags.Ephemeral });
 
     // TODO: Add multiple error exceptions for each failure
     if (!guildId || !targetId || !channel) {
@@ -50,7 +55,8 @@ const HighlightCommand: Command<MessageContextMenuCommandInteraction> = {
               connectOrCreate: {
                 create: {
                   snowflakeId: author.id,
-                  name: author.username,
+                  username: author.username,
+                  displayName: author.displayName,
                 },
                 where: {
                   snowflakeId: author.id,
@@ -76,7 +82,8 @@ const HighlightCommand: Command<MessageContextMenuCommandInteraction> = {
               connectOrCreate: {
                 create: {
                   snowflakeId: user.id,
-                  name: user.username,
+                  username: user.username,
+                  displayName: user.displayName,
                 },
                 where: {
                   snowflakeId: user.id,

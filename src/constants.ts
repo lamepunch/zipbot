@@ -56,11 +56,11 @@ export const REACTIONS: string[] = [
 export const RESPONSE_COLOR: number = 0xbf40bf;
 
 export const LEADERBOARD_EMOJIS: string[] = [
-  "<a:catjam:829075076779343963>",
-  "<:gladbrosnan:833399528605745172>",
-  "<a:vince:864710099436306452>",
-  "<a:cagedance:848621679814246401>",
-  "<:youtried:769717318337953812>",
+  "<a:catjam:1251597146642317312>",
+  "<:gladbrosnan:1452712767055204563>",
+  "<:goodforyou:1251389543333236798>",
+  "<:okcoolbuddy:1251609588453609552>",
+  "<:kek:1251494676960247829>",
 ];
 
 export const QUOTE_EMBED_TITLES: string[] = [

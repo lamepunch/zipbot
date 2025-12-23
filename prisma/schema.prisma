@@ -12,57 +12,55 @@ generator client {
 }
 
 model Guild {
-  id          Int    @id @default(autoincrement())
-  snowflakeId String @unique
+  id          Int          @id @default(autoincrement())
+  addedAt     DateTime     @default(now())
+  snowflakeId String       @unique
   name        String
-
   channels    Channel[]
   invocations Invocation[]
   quotes      Quote[]
 }
 
 model User {
-  id          Int    @id @default(autoincrement())
-  snowflakeId String @unique
-  name        String
-
+  id          Int          @id @default(autoincrement())
+  snowflakeId String       @unique
+  username    String
+  displayName String
   invocations Invocation[]
   quotes      Quote[]
   submissions Quote[]      @relation("Submitter")
 }
 
 model Channel {
-  id          Int    @id @default(autoincrement())
-  snowflakeId String @unique
+  id          Int          @id @default(autoincrement())
+  snowflakeId String       @unique
   guildId     Int
   name        String
-
   guild       Guild        @relation(fields: [guildId], references: [id])
   invocations Invocation[]
   quotes      Quote[]
 }
 
 model Command {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
   description String?
-
   invocations Invocation[]
 }
 
 model Invocation {
   id              Int      @id @default(autoincrement())
   invokedAt       DateTime @default(now())
-  command         Command  @relation(fields: [commandId], references: [id])
-  user            User     @relation(fields: [userId], references: [id])
-  guild           Guild?   @relation(fields: [guildId], references: [id])
-  channel         Channel? @relation(fields: [channelId], references: [id])
-  reactionImage   Image?   @relation(fields: [reactionImageId], references: [id])
   commandId       Int
   userId          Int
   guildId         Int?
   channelId       Int?
   reactionImageId Int?
+  command         Command  @relation(fields: [commandId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
+  guild           Guild?   @relation(fields: [guildId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  channel         Channel? @relation(fields: [channelId], references: [id], onUpdate: SetNull, onDelete: SetNull)
+  reactionImage   Image?   @relation(fields: [reactionImageId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 }
 
 model Category {
@@ -72,27 +70,27 @@ model Category {
 }
 
 model Image {
-  id         Int    @id @default(autoincrement())
-  name       String
-  categoryId Int
-  url        String
-
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now())
+  categoryId  Int
+  name        String
+  stem        String?
   category    Category     @relation(fields: [categoryId], references: [id])
   invocations Invocation[]
 }
 
 model Quote {
   id          Int      @id @default(autoincrement())
-  messageId   String   @unique
   createdAt   DateTime
   submittedAt DateTime @default(now())
-  content     String
+  messageId   String   @unique
   userId      Int
   submitterId Int
   guildId     Int
   channelId   Int
-  user        User     @relation(fields: [userId], references: [id])
-  submitter   User     @relation(name: "Submitter", fields: [submitterId], references: [id])
-  guild       Guild    @relation(fields: [guildId], references: [id])
-  channel     Channel  @relation(fields: [channelId], references: [id])
+  content     String
+  user        User     @relation(fields: [userId], references: [id], onUpdate: NoAction)
+  submitter   User     @relation(name: "Submitter", fields: [submitterId], references: [id], onUpdate: NoAction)
+  guild       Guild    @relation(fields: [guildId], references: [id], onUpdate: NoAction)
+  channel     Channel  @relation(fields: [channelId], references: [id], onUpdate: NoAction)
 }

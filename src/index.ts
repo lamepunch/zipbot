@@ -5,6 +5,7 @@ import {
   Message,
   GatewayIntentBits,
   ChannelType,
+  MessageFlags,
 } from "discord.js";
 import { Guild as Server } from "./generated/prisma/client.js";
 
@@ -71,7 +72,7 @@ client.on("interactionCreate", async (interaction) => {
     } else {
       await interaction.reply({
         content: "Command was unable to be executed. Please try again later.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   }

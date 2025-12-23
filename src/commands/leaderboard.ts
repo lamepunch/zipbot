@@ -2,6 +2,7 @@ import {
   APIEmbedField,
   CommandInteraction,
   InteractionReplyOptions,
+  MessageFlags,
 } from "discord.js";
 
 import { Command, LeaderboardEntry } from "../types.js";
@@ -27,14 +28,14 @@ function determineCacheState(interaction: CommandInteraction): boolean {
 
 async function sendMessage(
   interaction: CommandInteraction,
-  data: LeaderboardEntry[]
+  data: LeaderboardEntry[],
 ) {
   // Convert the leaderboard data into an embed
   let entries: APIEmbedField[] = data.map(
     ({ position, username, invocations }: LeaderboardEntry) => ({
       name: `${position}. ${username}`,
       value: `${LEADERBOARD_EMOJIS[position - 1]} ${invocations} total unzips`,
-    })
+    }),
   );
 
   let response: InteractionReplyOptions = {
@@ -46,7 +47,6 @@ async function sendMessage(
         footer: { text: "⏱️ Updated every 30 minutes" },
       },
     ],
-    ephemeral: true,
   };
 
   await interaction.reply(response);
@@ -71,9 +71,10 @@ const LeaderboardCommand: Command<CommandInteraction> = {
       });
 
       // Convert the results into an intermediate data structure
+      // @TODO: Convert this to a TypedSQL query
       let leaderboard: LeaderboardEntry[] = counts.map((user, index) => ({
         position: index + 1,
-        username: user.name,
+        username: user.displayName,
         invocations: user._count !== null ? user._count.invocations : 0,
       }));
 
