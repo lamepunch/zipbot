@@ -6,9 +6,10 @@ datasource db {
 }
 
 generator client {
-  provider   = "prisma-client"
-  output     = "../src/generated/prisma"
-  engineType = "client"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+  engineType   = "client"
 }
 
 model Guild {
@@ -73,7 +74,7 @@ model Image {
   id          Int          @id @default(autoincrement())
   createdAt   DateTime     @default(now())
   categoryId  Int
-  name        String
+  name        String?
   stem        String?
   category    Category     @relation(fields: [categoryId], references: [id])
   invocations Invocation[]

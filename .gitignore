@@ -1,9 +1,11 @@
 node_modules/
 dist/
 tsconfig.tsbuildinfo
-src/generated/prisma/
 
+src/generated/prisma/
 .env
-count.txt
+.env.development
+.env.production
+
 .DS_Store
 Thumbs.db

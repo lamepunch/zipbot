@@ -2,7 +2,6 @@ import {
   APIEmbedField,
   CommandInteraction,
   InteractionReplyOptions,
-  MessageFlags,
 } from "discord.js";
 
 import { Command, LeaderboardEntry } from "../types.js";
@@ -72,11 +71,13 @@ const LeaderboardCommand: Command<CommandInteraction> = {
 
       // Convert the results into an intermediate data structure
       // @TODO: Convert this to a TypedSQL query
-      let leaderboard: LeaderboardEntry[] = counts.map((user, index) => ({
-        position: index + 1,
-        username: user.displayName,
-        invocations: user._count !== null ? user._count.invocations : 0,
-      }));
+      let leaderboard: LeaderboardEntry[] = counts.map(
+        (user, index: number) => ({
+          position: index + 1,
+          username: user.displayName,
+          invocations: user._count !== null ? user._count.invocations : 0,
+        }),
+      );
 
       // Cache the leaderboard
       cachedLeaderboard = leaderboard;

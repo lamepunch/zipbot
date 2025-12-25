@@ -1,4 +1,4 @@
-import { Guild, Message, MessageFlags, TextChannel } from "discord.js";
+import { Guild, Message, TextChannel } from "discord.js";
 
 import { Command } from "../types.js";
 import { RESPONSE_COLOR } from "../constants.js";
