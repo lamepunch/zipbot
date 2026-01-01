@@ -11,6 +11,7 @@ import { Guild as Server } from "./generated/prisma/client.js";
 
 import { Command } from "./types.js";
 import prisma from "./prisma.js";
+import log from "./logger.js";
 
 import ReactCommand from "./commands/react.js";
 import LeaderboardCommand from "./commands/leaderboard.js";
@@ -32,6 +33,8 @@ commands.set("quote", QuoteCommand);
 commands.set("highlight", HighlightCommand);
 
 client.on("guildCreate", async (guild: Guild) => {
+  log.debug("guildCreate event fired");
+
   // Whenever Zipbot joins a new guild, create a new Guild entry in the database
   let { id, name } = guild;
   // @TODO: Make this an upsert instead of a create
@@ -45,13 +48,18 @@ client.on("guildCreate", async (guild: Guild) => {
 });
 
 client.on("messageCreate", async (message: Message) => {
+  let { content, author, channel, guild } = message;
+
+  log.debug({ content }, "messageCreate event fired");
+
   let isZippable: boolean =
-    message.content.match(/unzip/i) !== null &&
-    !message.author.bot &&
-    message.channel.type === ChannelType.GuildText &&
-    message.guild !== null;
+    content.match(/unzip/i) !== null &&
+    !author.bot &&
+    channel.type === ChannelType.GuildText &&
+    guild !== null;
 
   if (isZippable) {
+    log.info("Message content matched react criteria");
     let react = commands.get("react");
     if (react) {
       await react.execute(message);
@@ -60,6 +68,8 @@ client.on("messageCreate", async (message: Message) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
+  log.debug("interactionCreate event fired");
+
   if (
     interaction.isChatInputCommand() ||
     interaction.isMessageContextMenuCommand()
@@ -68,6 +78,7 @@ client.on("interactionCreate", async (interaction) => {
     let command = commands.get(commandName.toLowerCase());
 
     if (command) {
+      log.info(`Executing ${command} command`);
       await command.execute(interaction);
     } else {
       await interaction.reply({
@@ -76,6 +87,15 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
   }
+});
+
+client.on("clientReady", async (client) => {
+  log.debug("clientReady event fired");
+
+  log.info(
+    client.user,
+    `Successfully authenticated as ${client.user.displayName}`,
+  );
 });
 
 client.login(process.env.TOKEN);
