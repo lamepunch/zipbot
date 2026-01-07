@@ -7,6 +7,7 @@ import {
 
 import { Command } from "../types.js";
 import prisma from "../prisma.js";
+import log from "../logger.js";
 
 const HighlightCommand: Command<MessageContextMenuCommandInteraction> = {
   data: {
@@ -44,6 +45,7 @@ const HighlightCommand: Command<MessageContextMenuCommandInteraction> = {
         });
 
         if (existingQuote) {
+          log.debug(existingQuote, "Existing quote found");
           throw new Error("Quote already exists");
         }
 
@@ -100,10 +102,7 @@ const HighlightCommand: Command<MessageContextMenuCommandInteraction> = {
         // Send a confirmation message to the user
         await reply(`Quote #${newQuote.id} was successfully added!`);
       } catch (error) {
-        // Log the error in development
-        if (process.env.NODE_ENV === "development") {
-          console.error(error);
-        }
+        log.error(error, "Error encountered while adding quote");
 
         let existingQuoteError: boolean =
           error instanceof Error && error.message === "Quote already exists";

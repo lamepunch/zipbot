@@ -1,6 +1,5 @@
 import {
   Client,
-  Collection,
   Guild,
   Message,
   GatewayIntentBits,
@@ -26,7 +25,7 @@ let client: Client = new Client({
   ],
 });
 
-let commands = new Collection<string, Command<any>>();
+let commands = new Map<string, Command<any>>();
 commands.set("react", ReactCommand);
 commands.set("leaderboard", LeaderboardCommand);
 commands.set("quote", QuoteCommand);
@@ -60,9 +59,16 @@ client.on("messageCreate", async (message: Message) => {
 
   if (isZippable) {
     log.info("Message content matched react criteria");
+
     let react = commands.get("react");
     if (react) {
-      await react.execute(message);
+      try {
+        await react.execute(message);
+      } catch (error) {
+        log.error(error, "Error encountered while executing react command");
+      }
+    } else {
+      log.error(commands, "No react command found");
     }
   }
 });
@@ -79,8 +85,20 @@ client.on("interactionCreate", async (interaction) => {
 
     if (command) {
       log.info(`Executing ${command} command`);
-      await command.execute(interaction);
+
+      try {
+        await command.execute(interaction);
+      } catch (error) {
+        log.error(error, "Error encountered while executing command");
+
+        await interaction.reply({
+          content: "Command was unable to be executed. Please try again later.",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
     } else {
+      log.error(command, "Command was unable to be executed");
+
       await interaction.reply({
         content: "Command was unable to be executed. Please try again later.",
         flags: MessageFlags.Ephemeral,
