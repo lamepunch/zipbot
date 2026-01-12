@@ -6,9 +6,12 @@ import {
   ChannelType,
   MessageFlags,
 } from "discord.js";
-import { Guild as Server } from "./generated/prisma/client.js";
 
-import { Command } from "./types.js";
+import type { Guild as Server } from "./generated/prisma/client.js";
+import type { Command } from "./types.js";
+
+import { formatError } from "./utils/helpers.js";
+
 import prisma from "./prisma.js";
 import log from "./logger.js";
 
@@ -49,7 +52,15 @@ client.on("guildCreate", async (guild: Guild) => {
 client.on("messageCreate", async (message: Message) => {
   let { content, author, channel, guild } = message;
 
-  log.debug({ content }, "messageCreate event fired");
+  log.debug(
+    {
+      id: message.id,
+      author: author.username,
+      channel: channel.id,
+      content: { body: content, embeds: message.embeds },
+    },
+    "messageCreate event fired",
+  );
 
   let isZippable: boolean =
     content.match(/unzip/i) !== null &&
@@ -65,7 +76,10 @@ client.on("messageCreate", async (message: Message) => {
       try {
         await react.execute(message);
       } catch (error) {
-        log.error(error, "Error encountered while executing react command");
+        log.error(
+          { error: formatError(error) },
+          "Error executing react command",
+        );
       }
     } else {
       log.error(commands, "No react command found");
@@ -84,12 +98,17 @@ client.on("interactionCreate", async (interaction) => {
     let command = commands.get(commandName.toLowerCase());
 
     if (command) {
-      log.info(`Executing ${command} command`);
+      let { name } = command.data;
+
+      log.info(`Executing ${name} command`);
 
       try {
         await command.execute(interaction);
       } catch (error) {
-        log.error(error, "Error encountered while executing command");
+        log.error(
+          { error: formatError(error) },
+          `Error executing ${name} command`,
+        );
 
         await interaction.reply({
           content: "Command was unable to be executed. Please try again later.",
@@ -116,4 +135,8 @@ client.on("clientReady", async (client) => {
   );
 });
 
-client.login(process.env.TOKEN);
+try {
+  await client.login(process.env.TOKEN);
+} catch (error) {
+  log.error(error, "Discord client error during login");
+}

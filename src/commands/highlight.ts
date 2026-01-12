@@ -5,7 +5,8 @@ import {
   MessageFlags,
 } from "discord.js";
 
-import { Command } from "../types.js";
+import type { Command } from "../types.js";
+
 import prisma from "../prisma.js";
 import log from "../logger.js";
 

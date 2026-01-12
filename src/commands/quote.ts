@@ -1,7 +1,8 @@
 import { CommandInteraction, Snowflake, MessageFlags } from "discord.js";
 
-import { Command } from "../types.js";
+import type { Command } from "../types.js";
 import { QUOTE_EMBED_TITLES, RESPONSE_COLOR } from "../constants.js";
+
 import prisma from "../prisma.js";
 import log from "../logger.js";
 

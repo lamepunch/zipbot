@@ -4,8 +4,9 @@ import {
   InteractionReplyOptions,
 } from "discord.js";
 
-import { Command, LeaderboardEntry } from "../types.js";
+import type { Command, LeaderboardEntry } from "../types.js";
 import { RESPONSE_COLOR, LEADERBOARD_EMOJIS } from "../constants.js";
+
 import prisma from "../prisma.js";
 import log from "../logger.js";
 
