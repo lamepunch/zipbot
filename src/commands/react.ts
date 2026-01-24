@@ -1,8 +1,11 @@
 import { Guild, Message, TextChannel } from "discord.js";
 
-import { Command } from "../types.js";
+import type { Command } from "../types.js";
+
 import { RESPONSE_COLOR } from "../constants.js";
+
 import prisma from "../prisma.js";
+import log from "../logger.js";
 
 const ReactCommand: Command<Message> = {
   data: {
@@ -35,6 +38,8 @@ const ReactCommand: Command<Message> = {
     // @ts-ignore
     // Not sure why this is complaining...
     let { id, category, stem } = randomImage;
+
+    log.info(randomImage, "Random reaction image retrieved");
 
     let createInvocation = await prisma.invocation.create({
       data: {
@@ -79,7 +84,9 @@ const ReactCommand: Command<Message> = {
     let stemOrId = stem === null ? id : stem;
     let url = `https://images.lamepunch.com/reactions/${category.name.toLowerCase()}/${stemOrId}.webp`;
 
-    interaction.reply({
+    log.debug({ url }, "Embed image URL");
+
+    await interaction.reply({
       embeds: [
         {
           image: { url },

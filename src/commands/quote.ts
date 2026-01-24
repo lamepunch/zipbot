@@ -1,8 +1,10 @@
 import { CommandInteraction, Snowflake, MessageFlags } from "discord.js";
 
-import { Command } from "../types.js";
+import type { Command } from "../types.js";
 import { QUOTE_EMBED_TITLES, RESPONSE_COLOR } from "../constants.js";
+
 import prisma from "../prisma.js";
+import log from "../logger.js";
 
 const constructMention = (emoji: string, id: Snowflake) => `${emoji} <@${id}>`;
 
@@ -23,6 +25,8 @@ const QuoteCommand: Command<CommandInteraction> = {
     });
 
     if (randomQuote) {
+      log.debug(randomQuote, "Random quote found");
+
       let {
         id,
         messageId,
@@ -79,6 +83,8 @@ const QuoteCommand: Command<CommandInteraction> = {
         errorMessage =
           "There are no quotes in the database. Please submit a quote first.";
       }
+
+      log.error({ errorMessage }, "Error retrieving random quote");
 
       await interaction.reply({
         content: errorMessage,
