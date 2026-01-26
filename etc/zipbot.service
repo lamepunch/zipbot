@@ -10,7 +10,7 @@ Restart=always
 RestartSec=1
 User=zipbot
 WorkingDirectory=/opt/zipbot
-ExecStart=npm start
+ExecStart=/home/zipbot/.bun/bin/bun start
 
 [Install]
 WantedBy=multi-user.target
