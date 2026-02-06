@@ -19,6 +19,7 @@ import ReactCommand from "./commands/react.js";
 import LeaderboardCommand from "./commands/leaderboard.js";
 import QuoteCommand from "./commands/quote.js";
 import HighlightCommand from "./commands/highlight.js";
+import EchoCommand from "./commands/echo.js";
 
 let client: Client = new Client({
   intents: [
@@ -33,6 +34,7 @@ commands.set("react", ReactCommand);
 commands.set("leaderboard", LeaderboardCommand);
 commands.set("quote", QuoteCommand);
 commands.set("highlight", HighlightCommand);
+commands.set("echo", EchoCommand);
 
 client.on("guildCreate", async (guild: Guild) => {
   log.debug("guildCreate event fired");
