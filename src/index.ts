@@ -87,6 +87,70 @@ client.on("messageCreate", async (message: Message) => {
       log.error(commands, "No react command found");
     }
   }
+
+  // Check to see if message content matches any active tracked words
+  if (!author.bot && channel.type === ChannelType.GuildText && guild !== null) {
+    // @TODO: Should this value be cached?
+    let words = await prisma.word.findMany({
+      where: {
+        isActive: true,
+        guild: { snowflakeId: guild.id },
+      },
+    });
+
+    let matchedWords: { word: (typeof words)[number]; count: number }[] = [];
+    for (let word of words) {
+      try {
+        let pattern = new RegExp(word.regex, "gi");
+        let count = [...content.matchAll(pattern)].length;
+        if (count > 0) {
+          matchedWords.push({ word, count });
+        }
+      } catch (error) {
+        log.error(
+          { error: formatError(error), wordId: word.id, regex: word.regex },
+          "Invalid regex stored for word",
+        );
+      }
+    }
+
+    if (matchedWords.length > 0) {
+      log.info(
+        { count: matchedWords.length, messageId: message.id },
+        "Recording word occurrences",
+      );
+
+      try {
+        await prisma.$transaction(
+          matchedWords.map(({ word, count }) =>
+            prisma.occurrence.create({
+              data: {
+                count: count > 1 ? count : null,
+                word: { connect: { id: word.id } },
+                guild: { connect: { id: word.guildId } },
+                user: {
+                  connectOrCreate: {
+                    create: {
+                      snowflakeId: author.id,
+                      username: author.username,
+                      displayName: author.displayName,
+                    },
+                    where: { snowflakeId: author.id },
+                  },
+                },
+                messageId: message.id,
+              },
+            }),
+          ),
+        );
+      } catch (error) {
+        log.error(
+          { error: formatError(error) },
+          "Error recording word occurrences",
+        );
+      }
+    }
+  }
 });
 
 client.on("interactionCreate", async (interaction) => {

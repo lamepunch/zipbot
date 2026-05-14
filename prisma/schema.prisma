@@ -20,6 +20,8 @@ model Guild {
   channels    Channel[]
   invocations Invocation[]
   quotes      Quote[]
+  words       Word[]
+  occurrences Occurrence[]
 }
 
 model User {
@@ -30,6 +32,7 @@ model User {
   invocations Invocation[]
   quotes      Quote[]
   submissions Quote[]      @relation("Submitter")
+  occurrences Occurrence[]
 }
 
 model Channel {
@@ -94,4 +97,30 @@ model Quote {
   submitter   User     @relation(name: "Submitter", fields: [submitterId], references: [id], onUpdate: NoAction)
   guild       Guild    @relation(fields: [guildId], references: [id], onUpdate: NoAction)
   channel     Channel  @relation(fields: [channelId], references: [id], onUpdate: NoAction)
+}
+
+model Word {
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now())
+  name        String
+  guildId     Int
+  regex       String
+  isActive    Boolean      @default(true)
+  guild       Guild        @relation(fields: [guildId], references: [id])
+  occurrences Occurrence[]
+
+  @@unique([guildId, name])
+}
+
+model Occurrence {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  count     Int?
+  wordId    Int
+  guildId   Int
+  userId    Int
+  messageId String
+  word      Word     @relation(fields: [wordId], references: [id])
+  guild     Guild    @relation(fields: [guildId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }

@@ -1,30 +1,50 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with the code in this repository.
+
+I try to keep it up-to-date as much as possible but you may find some outdated information.
 
 ## Project Overview
 
-Zipbot is a Discord bot built with Discord.js v13 that:
-- Responds to messages containing "unzip" with random reaction images
+Zipbot is a Discord bot built with Discord.js v14 that tries to bring joy to its users.
+
+The main features include:
+- Responds to messages containing "unzip" with a random reaction image pulled from the database
 - Manages a quote database where users can highlight memorable messages
 - Tracks user invocations and provides a leaderboard
-- Uses Prisma ORM with PostgreSQL for data persistence
+- Tracks per-guild word occurrences via configurable regex patterns
+- Echoes user input back into the channel via a slash command
+- Uses Prisma ORM (v7) with PostgreSQL for data persistence
+
+The project runs on the Bun runtime and is written in TypeScript, trying to use the latest language features and libraries available, including ESM modules, even when that's not the easiest way to do something.
+
+## Style Guide
+
+The main guiding principle is to be as simple as possible, don't overcomplicate things, or try to be too clever. Readability and maintainability should be prioritized at all times. Comment your code only when necessary.
 
 ## Development Commands
 
 **Development workflow:**
 ```bash
-npm run start:dev          # Run with hot reload (ts-node-dev)
-npm run build              # Compile TypeScript to dist/
-npm start                  # Run compiled JavaScript from dist/
+bun run start:dev          # Run with hot reload (bun --watch)
+bun run build              # Type-check / compile TypeScript via tsc
+bun run start              # Run via node from the compiled entry
+bun run start:prod         # prisma generate + migrate deploy + start
 ```
 
 **Database management:**
 ```bash
-npm run prisma:generate    # Generate Prisma client after schema changes
-npm run prisma:migrate     # Apply migrations (production)
-npx prisma migrate dev     # Create and apply migration (development)
-npx prisma studio          # Open database GUI
+bun run prisma:generate    # Generate Prisma client after schema changes
+bun run prisma:migrate     # Apply migrations (prisma migrate deploy)
+bunx prisma migrate dev    # Create and apply migration (development)
+bunx prisma studio         # Open database GUI
+```
+
+Prisma is configured via `prisma.config.ts` (loads `dotenv`, defines the datasource URL, and sets `bun ./prisma/seed.ts` as the seed command). The generated client is emitted to `src/generated/prisma` as ESM and imported from there.
+
+**Tasks:**
+```bash
+bun run task:fetcher       # Run the fetcher task (src/tasks/fetcher.ts)
 ```
 
 **Docker deployment:**
@@ -36,84 +56,113 @@ docker-compose up          # Start app with PostgreSQL
 
 ### Command System
 
-Commands are registered in a Collection in `src/index.ts` and must implement the `Command<T>` interface:
+Commands live in `src/commands/` and must implement the `Command<T>` interface from `src/types.d.ts`:
 
 ```typescript
 interface Command<T> {
-  data: any;                        // Command metadata (name, description, type)
+  data: any;                        // Command metadata (name, description, type, options)
   execute: (interaction: T) => Promise<void>;
 }
 ```
 
 **Command Types:**
-- `Command<Message>` - Message-based commands (e.g., react.ts)
-- `Command<CommandInteraction>` - Slash commands (e.g., quote.ts, leaderboard.ts)
-- `Command<ContextMenuInteraction>` - Context menu commands (e.g., highlight.ts)
+- `Command<Message>` — message-triggered commands (e.g., `react.ts`)
+- `Command<CommandInteraction>` — slash commands (e.g., `quote.ts`, `leaderboard.ts`, `echo.ts`)
+- `Command<ContextMenuInteraction>` — context menu commands (e.g., `highlight.ts`)
+
+Commands are registered in a `Map<string, Command<any>>` in `src/index.ts`.
 
 ### Event Flow
 
-**src/index.ts** is the entry point that:
-1. Initializes Discord client with GUILDS and GUILD_MESSAGES intents
-2. Registers command handlers in a Collection
-3. Handles three events:
-   - `guildCreate` - Creates Guild record when bot joins a server
-   - `messageCreate` - Triggers react command when message contains "unzip"
-   - `interactionCreate` - Routes slash/context menu commands to handlers
+`src/index.ts` is the entry point that:
+1. Initializes the Discord client with `Guilds`, `GuildMessages`, and `MessageContent` intents
+2. Registers command handlers in a Map keyed by command name
+3. Handles four events:
+   - `guildCreate` — creates a `Guild` record when the bot joins a server
+   - `messageCreate` — runs the `react` command when the message contains "unzip", and records `Occurrence` rows for any active `Word` whose regex matches the message
+   - `interactionCreate` — routes chat-input and message context-menu commands to their handlers
+   - `clientReady` — logs successful authentication
+
+All errors from command execution are caught and reported via the logger; slash/context-menu failures also reply ephemerally to the user.
+
+### Logging
+
+`src/logger.ts` exports a singleton `pino` logger. When `NODE_ENV === "development"`, it runs at `debug` level through `pino-pretty`; in production it uses pino defaults. Use `log.debug/info/error` and pass structured objects as the first argument. `src/utils/helpers.ts` provides `formatError` to serialize thrown errors for logging.
 
 ### Database Schema & Patterns
 
-**Core Models:**
-- `Guild` - Discord server (1:many with channels, invocations, quotes)
-- `User` - Discord user (1:many with invocations, quotes as author/submitter)
-- `Channel` - Text channel (belongs to Guild)
-- `Invocation` - Tracks each "unzip" reaction event
-- `Quote` - Saved message with author, submitter, and metadata
+**Core Models** (see `prisma/schema.prisma`):
+- `Guild` — Discord server; has channels, invocations, quotes, words, occurrences
+- `User` — Discord user (`snowflakeId`, `username`, `displayName`); has invocations, quotes (author + submitter), occurrences
+- `Channel` — text channel belonging to a Guild
+- `Command` — registered command metadata; referenced by invocations
+- `Invocation` — records each command execution, optionally with guild, channel, and reaction image
+- `Category` / `Image` — taxonomy + asset records for reaction images
+- `Quote` — saved message with author, submitter, channel, guild, and content
+- `Word` — per-guild tracked term with a regex and `isActive` flag (`@@unique([guildId, name])`)
+- `Occurrence` — records each match of a `Word` against a message
 
 **Critical Pattern: connectOrCreate**
-All commands use Prisma's `connectOrCreate` to handle first-time users/channels:
+First-time users/channels are handled with Prisma's `connectOrCreate` keyed on `snowflakeId` to avoid duplicate key errors:
 ```typescript
 user: {
   connectOrCreate: {
-    create: { id: author.id, name: author.username },
-    where: { id: author.id }
-  }
+    create: {
+      snowflakeId: author.id,
+      username: author.username,
+      displayName: author.displayName,
+    },
+    where: { snowflakeId: author.id },
+  },
 }
 ```
-This prevents duplicate key errors when a user/channel is encountered for the first time.
+
+**Word occurrence recording**
+Active words for a guild are fetched on every `messageCreate`, each regex is compiled with the `gi` flag, and all matches across all words are written in a single `prisma.$transaction([...])`. Invalid stored regexes are caught per-word and logged without aborting the batch.
 
 ### Command Implementations
 
 **react.ts** (auto-triggered on "unzip"):
-- Creates Invocation record linking user, guild, channel
-- Returns random image from REACTIONS array
-- Displays invocation count in footer
+- Fetches a random reaction image from the database via `prisma.image.findRandom` (limited to category id 1)
+- Creates an `Invocation` record linking user, guild, channel, and the chosen image
+- Builds the embed image URL from the image's category and `stem`/`id`
+- Displays the invocation id in the embed footer
 
-**highlight.ts** (context menu):
-- Right-click command to save quotes
-- Validates: non-bot author, text channel, no duplicate messageId
-- Creates Quote with author (user), submitter (user), and content
-- Adds ⭐ reaction to original message
+**highlight.ts** (message context menu):
+- Right-click a message to save it as a quote
+- Validates: non-bot author, text channel, no duplicate `messageId`
+- Creates a `Quote` with author (user), submitter (user), content, channel, and guild
+- Adds a ⭐ reaction to the original message
 
 **quote.ts** (slash command):
-- Fetches random quote by selecting random ID between 1 and count
-- Displays in embed with author ("Wisdom Dispenser"), submitter ("Inscriptor of History"), and permalink
+- Fetches a random quote by selecting a random ID between 1 and `count`
+- Displays in an embed with author ("Wisdom Dispenser"), submitter ("Inscriptor of History"), and permalink
 
 **leaderboard.ts** (slash command):
-- Caches top 5 users by invocation count for 30 minutes
-- Cache invalidation logic in `determineCacheState()`
+- Caches the top 5 users by invocation count for 30 minutes
+- `determineCacheState()` decides whether to fetch fresh data based on `lastCountFetch`
+
+**echo.ts** (slash command):
+- Replies with `<@userId> said: <message>` using the required `message` string option
 
 ## Environment Variables
 
 See `.env.example`:
-- `TOKEN` - Discord bot token
-- `DATABASE_URL` - PostgreSQL connection string
-- `NODE_ENV` - Controls Prisma logging (development shows queries)
-- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` - Docker PostgreSQL config
+- `TOKEN` — Discord bot token
+- `DATABASE_URL` — PostgreSQL connection string
+- `NODE_ENV` — `development` enables debug-level pretty logging
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` — Docker PostgreSQL config
 
 ## Key Files
 
-- `src/index.ts` - Main entry point, event handlers, command registration
-- `src/prisma.ts` - Singleton PrismaClient with conditional logging
-- `src/constants.ts` - REACTIONS array, embed colors, leaderboard emojis
-- `src/types.d.ts` - Command interface and type definitions
-- `prisma/schema.prisma` - Database schema
+- `src/index.ts` — entry point, event handlers, command registration
+- `src/prisma.ts` — singleton PrismaClient
+- `src/logger.ts` — singleton pino logger
+- `src/constants.ts` — embed colors and leaderboard emojis. Also holds the legacy `REACTIONS` array, kept for historical reference — reaction images are now sourced from the database, not this array.
+- `src/types.d.ts` — `Command<T>` interface and shared type definitions
+- `src/commands/` — one file per command (`react`, `highlight`, `quote`, `leaderboard`, `echo`)
+- `src/utils/` — helpers (`formatError`, fetcher utilities)
+- `src/extensions/` — small standalone extensions (e.g., `random.ts`)
+- `src/generated/prisma/` — generated Prisma client (ESM output)
+- `prisma/schema.prisma` — database schema
+- `prisma.config.ts` — Prisma datasource and seed configuration
