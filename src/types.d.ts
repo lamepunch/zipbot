@@ -13,9 +13,3 @@ interface Command<T> {
   data: any;
   execute: (interaction: T) => Promise<void>;
 }
-
-interface LeaderboardEntry {
-  position: number;
-  username: string;
-  invocations: number;
-}

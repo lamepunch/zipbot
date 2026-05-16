@@ -22,6 +22,8 @@ The project runs on the Bun runtime and is written in TypeScript, trying to use 
 
 The main guiding principle is to be as simple as possible, don't overcomplicate things, or try to be too clever. Readability and maintainability should be prioritized at all times. Comment your code only when necessary.
 
+Do not rename existing variables when editing code. Preserve the names that are already there, even if they don't match your default convention — only introduce new names for new bindings.
+
 ## Development Commands
 
 **Development workflow:**

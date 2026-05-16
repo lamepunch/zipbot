@@ -6,10 +6,11 @@ datasource db {
 }
 
 generator client {
-  provider     = "prisma-client"
-  output       = "../src/generated/prisma"
-  moduleFormat = "esm"
-  engineType   = "client"
+  provider        = "prisma-client"
+  previewFeatures = ["typedSql"]
+  output          = "../src/generated/prisma"
+  moduleFormat    = "esm"
+  engineType      = "client"
 }
 
 model Guild {
