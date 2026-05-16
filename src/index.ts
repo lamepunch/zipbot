@@ -1,5 +1,6 @@
 import {
   Client,
+  Events,
   Guild,
   Message,
   GatewayIntentBits,
@@ -36,7 +37,7 @@ commands.set("quote", QuoteCommand);
 commands.set("highlight", HighlightCommand);
 commands.set("echo", EchoCommand);
 
-client.on("guildCreate", async (guild: Guild) => {
+client.on(Events.GuildCreate, async (guild: Guild) => {
   log.debug("guildCreate event fired");
 
   // Whenever Zipbot joins a new guild, create a new Guild entry in the database
@@ -51,7 +52,7 @@ client.on("guildCreate", async (guild: Guild) => {
   // @TODO: Add a check to see if the guild was created, if not inform the bot administrator
 });
 
-client.on("messageCreate", async (message: Message) => {
+client.on(Events.MessageCreate, async (message: Message) => {
   let { content, author, channel, guild } = message;
 
   log.debug(
@@ -153,7 +154,7 @@ client.on("messageCreate", async (message: Message) => {
   }
 });
 
-client.on("interactionCreate", async (interaction) => {
+client.on(Events.InteractionCreate, async (interaction) => {
   log.debug("interactionCreate event fired");
 
   if (
@@ -192,7 +193,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-client.on("clientReady", async (client) => {
+client.on(Events.ClientReady, async (client) => {
   log.debug("clientReady event fired");
 
   log.info(

@@ -78,10 +78,10 @@ Commands are registered in a `Map<string, Command<any>>` in `src/index.ts`.
 1. Initializes the Discord client with `Guilds`, `GuildMessages`, and `MessageContent` intents
 2. Registers command handlers in a Map keyed by command name
 3. Handles four events:
-   - `guildCreate` — creates a `Guild` record when the bot joins a server
-   - `messageCreate` — runs the `react` command when the message contains "unzip", and records `Occurrence` rows for any active `Word` whose regex matches the message
-   - `interactionCreate` — routes chat-input and message context-menu commands to their handlers
-   - `clientReady` — logs successful authentication
+   - `GuildCreate` — creates a `Guild` record when the bot joins a server
+   - `NessageCreate` — runs the `react` command when the message contains "unzip", and records `Occurrence` rows for any active `Word` whose regex matches the message
+   - `InteractionCreate` — routes chat-input and message context-menu commands to their handlers
+   - `ClientReady` — logs successful authentication
 
 All errors from command execution are caught and reported via the logger; slash/context-menu failures also reply ephemerally to the user.
 
