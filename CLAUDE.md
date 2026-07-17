@@ -29,8 +29,8 @@ Do not rename existing variables when editing code. Preserve the names that are 
 **Development workflow:**
 ```bash
 bun run start:dev          # Run with hot reload (bun --watch)
-bun run build              # Type-check / compile TypeScript via tsc
-bun run start              # Run via node from the compiled entry
+bun run build              # Type-check via tsc (noEmit)
+bun run start              # Run via bun from src/index.ts
 bun run start:prod         # prisma generate + migrate deploy + start
 ```
 
@@ -49,10 +49,7 @@ Prisma is configured via `prisma.config.ts` (loads `dotenv`, defines the datasou
 bun run task:fetcher       # Run the fetcher task (src/tasks/fetcher.ts)
 ```
 
-**Docker deployment:**
-```bash
-docker-compose up          # Start app with PostgreSQL
-```
+**Docker deployment:** the `Dockerfile` and `docker-compose.yml` are unused and mothballed — do not update or rely on them. Production runs Bun directly via `start:prod`.
 
 ## Architecture
 
@@ -72,18 +69,15 @@ interface Command<T> {
 - `Command<CommandInteraction>` — slash commands (e.g., `quote.ts`, `leaderboard.ts`, `echo.ts`)
 - `Command<ContextMenuInteraction>` — context menu commands (e.g., `highlight.ts`)
 
-Commands are registered in a `Map<string, Command<any>>` in `src/index.ts`.
+Commands are registered in a `Map<string, Command<any>>` in `src/commands/index.ts` (default export, imported by event handlers).
 
 ### Event Flow
 
-`src/index.ts` is the entry point that:
-1. Initializes the Discord client with `Guilds`, `GuildMessages`, and `MessageContent` intents
-2. Registers command handlers in a Map keyed by command name
-3. Handles four events:
-   - `GuildCreate` — creates a `Guild` record when the bot joins a server
-   - `NessageCreate` — runs the `react` command when the message contains "unzip", and records `Occurrence` rows for any active `Word` whose regex matches the message
-   - `InteractionCreate` — routes chat-input and message context-menu commands to their handlers
-   - `ClientReady` — logs successful authentication
+`src/index.ts` is the entry point: it initializes the Discord client with `Guilds`, `GuildMessages`, and `MessageContent` intents, wires up the event handlers, and logs in. Handlers live in `src/events/` (PascalCase file names matching the `Events` enum member):
+   - `GuildCreate.ts` — creates a `Guild` record when the bot joins a server
+   - `MessageCreate.ts` — runs the `react` command when the message contains "unzip", and records `Occurrence` rows for any active `Word` whose regex matches the message (active words are cached in-memory per guild with a 5-minute TTL)
+   - `InteractionCreate.ts` — routes chat-input and message context-menu commands to their handlers
+   - `ClientReady` — logs successful authentication (kept inline in `src/index.ts`)
 
 All errors from command execution are caught and reported via the logger; slash/context-menu failures also reply ephemerally to the user.
 
@@ -120,7 +114,7 @@ user: {
 ```
 
 **Word occurrence recording**
-Active words for a guild are fetched on every `messageCreate`, each regex is compiled with the `gi` flag, and all matches across all words are written in a single `prisma.$transaction([...])`. Invalid stored regexes are caught per-word and logged without aborting the batch.
+Active words for a guild are read from an in-memory cache (5-minute TTL, refilled from the database on miss), each regex is compiled with the `gi` flag, and all matches across all words are written in a single `prisma.$transaction([...])`. Invalid stored regexes are caught per-word and logged without aborting the batch.
 
 ### Command Implementations
 
@@ -141,8 +135,7 @@ Active words for a guild are fetched on every `messageCreate`, each regex is com
 - Displays in an embed with author ("Wisdom Dispenser"), submitter ("Inscriptor of History"), and permalink
 
 **leaderboard.ts** (slash command):
-- Caches the top 5 users by invocation count for 30 minutes
-- `determineCacheState()` decides whether to fetch fresh data based on `lastCountFetch`
+- Fetches the top 5 users by invocation count fresh on every invocation via a TypedSQL query (`getInvocationLeaderboard`)
 
 **echo.ts** (slash command):
 - Replies with `<@userId> said: <message>` using the required `message` string option
@@ -157,12 +150,13 @@ See `.env.example`:
 
 ## Key Files
 
-- `src/index.ts` — entry point, event handlers, command registration
+- `src/index.ts` — entry point, client setup, event wiring
+- `src/events/` — one file per gateway event handler (`GuildCreate`, `MessageCreate`, `InteractionCreate`)
 - `src/prisma.ts` — singleton PrismaClient
 - `src/logger.ts` — singleton pino logger
 - `src/constants.ts` — embed colors and leaderboard emojis. Also holds the legacy `REACTIONS` array, kept for historical reference — reaction images are now sourced from the database, not this array.
 - `src/types.d.ts` — `Command<T>` interface and shared type definitions
-- `src/commands/` — one file per command (`react`, `highlight`, `quote`, `leaderboard`, `echo`)
+- `src/commands/` — one file per command (`react`, `highlight`, `quote`, `leaderboard`, `echo`) plus `index.ts` exporting the command map
 - `src/utils/` — helpers (`formatError`, fetcher utilities)
 - `src/extensions/` — small standalone extensions (e.g., `random.ts`)
 - `src/generated/prisma/` — generated Prisma client (ESM output)
