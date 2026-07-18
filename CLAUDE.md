@@ -59,15 +59,18 @@ Commands live in `src/commands/` and must implement the `Command<T>` interface f
 
 ```typescript
 interface Command<T> {
-  data: any;                        // Command metadata (name, description, type, options)
+  data: ...;                        // Discord REST API command body, conditional on T
   execute: (interaction: T) => Promise<void>;
 }
 ```
 
+`data` is typed against the Discord API registration body: `RESTPostAPIContextMenuApplicationCommandsJSONBody` for context-menu commands, `RESTPostAPIChatInputApplicationCommandsJSONBody` otherwise (context menus must not have a `description`).
+
 **Command Types:**
-- `Command<Message>` — message-triggered commands (e.g., `react.ts`)
 - `Command<CommandInteraction>` — slash commands (e.g., `quote.ts`, `leaderboard.ts`, `echo.ts`)
-- `Command<ContextMenuInteraction>` — context menu commands (e.g., `highlight.ts`)
+- `Command<MessageContextMenuCommandInteraction>` — context menu commands (e.g., `highlight.ts`, `backfill.ts`)
+
+Message-triggered behavior is not a command: it lives in `src/triggers/` (`react.ts`, `words.ts`) as plain functions called by the `MessageCreate` handler.
 
 Commands are registered in a `Map<string, Command<any>>` in `src/commands/index.ts` (default export, imported by event handlers).
 
@@ -75,7 +78,7 @@ Commands are registered in a `Map<string, Command<any>>` in `src/commands/index.
 
 `src/index.ts` is the entry point: it initializes the Discord client with `Guilds`, `GuildMessages`, and `MessageContent` intents, wires up the event handlers, and logs in. Handlers live in `src/events/` (PascalCase file names matching the `Events` enum member):
    - `GuildCreate.ts` — creates a `Guild` record when the bot joins a server
-   - `MessageCreate.ts` — runs the `react` command when the message contains "unzip", and records `Occurrence` rows for any active `Word` whose regex matches the message (active words are cached in-memory per guild with a 5-minute TTL)
+   - `MessageCreate.ts` — calls the `react` trigger when the message contains "unzip", and calls `recordOccurrences` from `src/triggers/words.ts` to record `Occurrence` rows for any active `Word` whose regex matches (active words are cached in-memory per guild with a 5-minute TTL, regexes precompiled at cache fill)
    - `InteractionCreate.ts` — routes chat-input and message context-menu commands to their handlers
    - `ClientReady` — logs successful authentication (kept inline in `src/index.ts`)
 
@@ -118,7 +121,7 @@ Active words for a guild are read from an in-memory cache (5-minute TTL, refille
 
 ### Command Implementations
 
-**react.ts** (auto-triggered on "unzip"):
+**triggers/react.ts** (auto-triggered on "unzip"):
 - Fetches a random reaction image from the database via `prisma.image.findRandom` (limited to category id 1)
 - Creates an `Invocation` record linking user, guild, channel, and the chosen image
 - Builds the embed image URL from the image's category and `stem`/`id`
@@ -140,6 +143,11 @@ Active words for a guild are read from an in-memory cache (5-minute TTL, refille
 **echo.ts** (slash command):
 - Replies with `<@userId> said: <message>` using the required `message` string option
 
+**backfill.ts** (message context menu):
+- Right-click a message to run the word-filter check on it after the fact
+- Skips (with an ephemeral reply) if the message already has any `Occurrence` rows
+- Otherwise calls `recordOccurrences` and reports how many tracked words matched
+
 ## Environment Variables
 
 See `.env.example`:
@@ -156,7 +164,8 @@ See `.env.example`:
 - `src/logger.ts` — singleton pino logger
 - `src/constants.ts` — embed colors and leaderboard emojis. Also holds the legacy `REACTIONS` array, kept for historical reference — reaction images are now sourced from the database, not this array.
 - `src/types.d.ts` — `Command<T>` interface and shared type definitions
-- `src/commands/` — one file per command (`react`, `highlight`, `quote`, `leaderboard`, `echo`) plus `index.ts` exporting the command map
+- `src/commands/` — one file per command (`highlight`, `quote`, `leaderboard`, `echo`, `backfill`) plus `index.ts` exporting the command map
+- `src/triggers/` — message-triggered behavior (`react.ts`, `words.ts` with the word cache and `recordOccurrences`)
 - `src/utils/` — helpers (`formatError`, fetcher utilities)
 - `src/extensions/` — small standalone extensions (e.g., `random.ts`)
 - `src/generated/prisma/` — generated Prisma client (ESM output)
