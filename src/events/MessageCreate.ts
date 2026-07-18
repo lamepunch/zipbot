@@ -8,23 +8,21 @@ import prisma from "../prisma.js";
 import log from "../logger.js";
 import commands from "../commands/index.js";
 
-// ponytail: in-memory TTL cache, fine for one process; revisit when the data plane moves to a worker
-// ponytail: regexes are admin-authored, so no ReDoS guard; add validation (or RE2) if others can ever create words
-const WORD_CACHE_TTL = 5 * 60 * 1000;
+const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
 type ActiveWord = { word: Word; pattern: RegExp };
-let wordCache = new Map<string, { entries: ActiveWord[]; cachedAt: number }>();
+let cache = new Map<string, { entries: ActiveWord[]; cachedAt: number }>();
 
-async function getActiveWords(guildSnowflakeId: string): Promise<ActiveWord[]> {
-  let cached = wordCache.get(guildSnowflakeId);
-  if (cached && Date.now() - cached.cachedAt < WORD_CACHE_TTL) {
+async function getActiveWords(snowflakeId: string): Promise<ActiveWord[]> {
+  let cached = cache.get(snowflakeId);
+  if (cached && Date.now() - cached.cachedAt < FIVE_MINUTES_IN_MS) {
     return cached.entries;
   }
 
   let words = await prisma.word.findMany({
     where: {
       isActive: true,
-      guild: { snowflakeId: guildSnowflakeId },
+      guild: { snowflakeId },
     },
   });
 
@@ -39,7 +37,7 @@ async function getActiveWords(guildSnowflakeId: string): Promise<ActiveWord[]> {
       );
     }
   }
-  wordCache.set(guildSnowflakeId, { entries, cachedAt: Date.now() });
+  cache.set(snowflakeId, { entries, cachedAt: Date.now() });
   return entries;
 }
 
