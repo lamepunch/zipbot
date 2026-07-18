@@ -1,5 +1,8 @@
 import prisma from "../src/prisma";
 
+// @TODO: Could get this value from R2
+const IMAGE_COUNT = 54;
+
 async function main() {
   // Add the main test server that Zipbot is always in
   let testServer = await prisma.guild.upsert({
@@ -29,6 +32,16 @@ async function main() {
       name: "Unzips",
     },
   });
+
+  // Fill the default category with images if it has none
+  let existing = await prisma.image.count();
+  if (existing === 0) {
+    await prisma.image.createMany({
+      data: Array.from({ length: IMAGE_COUNT }, () => ({
+        categoryId: unzipCategory.id,
+      })),
+    });
+  }
 }
 
 main()
