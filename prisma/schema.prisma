@@ -115,7 +115,7 @@ model Word {
   createdAt   DateTime     @default(now())
   name        String?
   guildId     Int
-  regex       String
+  regex       String?
   isActive    Boolean      @default(true)
   categoryId  Int?
   guild       Guild        @relation(fields: [guildId], references: [id])

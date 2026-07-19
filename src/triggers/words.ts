@@ -1,4 +1,9 @@
 import { Message } from "discord.js";
+import {
+  RegExpMatcher,
+  englishDataset,
+  englishRecommendedTransformers,
+} from "obscenity";
 
 import { formatError } from "../utils/helpers.js";
 
@@ -10,7 +15,13 @@ import log from "../logger.js";
 const { NODE_ENV } = process.env;
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
-type ActiveWord = { word: Word; pattern: RegExp };
+const matcher = new RegExpMatcher({
+  ...englishDataset.build(),
+  ...englishRecommendedTransformers,
+});
+
+// A word is either an obscenity (name is a dataset word, no regex) or a custom regex
+type ActiveWord = { word: Word; pattern: RegExp | null; termIds: number[] };
 let cache = new Map<string, { entries: ActiveWord[]; cachedAt: number }>();
 
 async function getActiveWords(snowflakeId: string): Promise<ActiveWord[]> {
@@ -31,8 +42,26 @@ async function getActiveWords(snowflakeId: string): Promise<ActiveWord[]> {
 
   let entries: ActiveWord[] = [];
   for (let word of words) {
+    if (word.regex === null) {
+      let termIds =
+        word.name === null
+          ? []
+          : matcher.getAllMatches(word.name).map(({ termId }) => termId);
+
+      if (termIds.length === 0) {
+        log.error(
+          { wordId: word.id, name: word.name },
+          "Word name is not a recognized obscenity",
+        );
+        continue;
+      }
+
+      entries.push({ word, pattern: null, termIds });
+      continue;
+    }
+
     try {
-      entries.push({ word, pattern: new RegExp(word.regex, "gi") });
+      entries.push({ word, pattern: new RegExp(word.regex, "gi"), termIds: [] });
     } catch (error) {
       log.error(
         { error: formatError(error), wordId: word.id, regex: word.regex },
@@ -53,8 +82,30 @@ export default async function recordOccurrences(message: Message) {
 
   let words = await getActiveWords(guild.id);
 
+  let found = matcher.getAllMatches(content);
+
   let matchedWords: { word: Word; count: number }[] = [];
+  for (let { word, pattern, termIds } of words) {
+    if (pattern !== null) {
+      continue;
+    }
+
+    // A word can have several dataset patterns matching the same span, so count distinct spans
+    let count = new Set(
+      found
+        .filter(({ termId }) => termIds.includes(termId))
+        .map(({ startIndex }) => startIndex),
+    ).size;
+    if (count > 0) {
+      matchedWords.push({ word, count });
+    }
+  }
+
   for (let { word, pattern } of words) {
+    if (pattern === null) {
+      continue;
+    }
+
     let count = (content.match(pattern) ?? []).length;
     if (count > 0) {
       matchedWords.push({ word, count });

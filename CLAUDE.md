@@ -98,7 +98,7 @@ All errors from command execution are caught and reported via the logger; slash/
 - `Invocation` — records each command execution, optionally with guild, channel, and reaction image
 - `Category` / `Image` — taxonomy + asset records; `Category.objectType` (`ObjectType` enum: `IMAGE` | `WORD`) says what a category classifies, names unique per type (`@@unique([name, objectType])`)
 - `Quote` — saved message with author, submitter, channel, guild, and content
-- `Word` — per-guild tracked term with a regex, `isActive` flag, and optional `categoryId` (`@@unique([guildId, name])`)
+- `Word` — per-guild tracked term, either an obscenity (`name` is an obscenity-dataset word, `regex` null) or a custom pattern (`regex` set); has `isActive` and optional `categoryId` (`@@unique([guildId, name])`)
 - `Occurrence` — records each match of a `Word` against a message
 
 **Critical Pattern: connectOrCreate**
@@ -117,7 +117,7 @@ user: {
 ```
 
 **Word occurrence recording**
-Active words for a guild are read from an in-memory cache (5-minute TTL, refilled from the database on miss), each regex is compiled with the `gi` flag, and all matches across all words are written in a single `prisma.$transaction([...])`. Invalid stored regexes are caught per-word and logged without aborting the batch.
+Active words for a guild are read from an in-memory cache (5-minute TTL, refilled from the database on miss). A word with `regex` null is an obscenity word: its `name` must be recognized by the `obscenity` library's english dataset (resolved to term ids at cache fill; unrecognized names are logged and skipped). Obscenity words are matched via the dataset matcher (occurrences counted as distinct spans, since a word can have several dataset patterns); regex words (compiled with `gi`) are matched independently, so a message can record both kinds. All matches are written in a single `prisma.$transaction([...])`; invalid regexes are caught per-word and logged without aborting the batch.
 
 ### Command Implementations
 

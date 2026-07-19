@@ -1,7 +1,47 @@
-import prisma from "../src/prisma";
+import { englishDataset, type EnglishProfaneWord } from "obscenity";
+
+import prisma from "../src/prisma.js";
 
 // @TODO: Could get this value from R2
 const IMAGE_COUNT = 54;
+
+const SLURS: EnglishProfaneWord[] = [
+  "abeed",
+  "abo",
+  "africoon",
+  "arabush",
+  "boonga",
+  "chingchong",
+  "chink",
+  "dyke",
+  "fag",
+  "kike",
+  "negro",
+  "nigger",
+  "retard",
+  "spastic",
+  "tranny",
+];
+
+// Collect every word in the obscenity english dataset
+function getProfanities(): Set<EnglishProfaneWord> {
+  let profanities = new Set<EnglishProfaneWord>();
+
+  for (let { id } of englishDataset.build().blacklistedTerms) {
+    let { phraseMetadata } = englishDataset.getPayloadWithPhraseMetadata({
+      termId: id,
+      startIndex: 0,
+      endIndex: 0,
+      matchLength: 0,
+    });
+
+    if (phraseMetadata) {
+      profanities.add(phraseMetadata.originalWord);
+    }
+  }
+
+  return profanities;
+}
 
 async function main() {
   // Add the main test server that Zipbot is always in
@@ -41,6 +81,42 @@ async function main() {
       data: Array.from({ length: IMAGE_COUNT }, () => ({
         categoryId: unzipCategory.id,
       })),
+    });
+  }
+
+  // Add the categories that classify tracked words
+  let slurCategory = await prisma.category.upsert({
+    where: { name_objectType: { name: "Slurs", objectType: "WORD" } },
+    update: {},
+    create: {
+      name: "Slurs",
+      objectType: "WORD",
+    },
+  });
+
+  let obscenityCategory = await prisma.category.upsert({
+    where: { name_objectType: { name: "Obscenities", objectType: "WORD" } },
+    update: {},
+    create: {
+      name: "Obscenities",
+      objectType: "WORD",
+    },
+  });
+
+  // Track every obscenity-dataset word, categorizing the slurs
+  for (let name of getProfanities()) {
+    let categoryId = SLURS.includes(name)
+      ? slurCategory.id
+      : obscenityCategory.id;
+
+    await prisma.word.upsert({
+      where: { guildId_name: { guildId: testServer.id, name } },
+      update: { categoryId },
+      create: {
+        name,
+        guildId: testServer.id,
+        categoryId,
+      },
     });
   }
 }

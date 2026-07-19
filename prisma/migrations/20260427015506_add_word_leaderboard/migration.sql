@@ -4,7 +4,7 @@ CREATE TABLE "Word" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "name" TEXT,
     "guildId" INTEGER NOT NULL,
-    "regex" TEXT NOT NULL,
+    "regex" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "Word_pkey" PRIMARY KEY ("id")
