@@ -103,7 +103,7 @@ model Quote {
 model Word {
   id          Int          @id @default(autoincrement())
   createdAt   DateTime     @default(now())
-  name        String
+  name        String?
   guildId     Int
   regex       String
   isActive    Boolean      @default(true)

@@ -2,7 +2,7 @@
 CREATE TABLE "Word" (
     "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "name" TEXT NOT NULL,
+    "name" TEXT,
     "guildId" INTEGER NOT NULL,
     "regex" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
