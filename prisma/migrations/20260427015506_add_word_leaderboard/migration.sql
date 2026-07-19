@@ -14,6 +14,7 @@ CREATE TABLE "Word" (
 CREATE TABLE "Occurrence" (
     "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "occurredAt" TIMESTAMP(3) NOT NULL,
     "count" INTEGER,
     "wordId" INTEGER NOT NULL,
     "guildId" INTEGER NOT NULL,

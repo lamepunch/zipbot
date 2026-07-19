@@ -114,14 +114,15 @@ model Word {
 }
 
 model Occurrence {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  count     Int?
-  wordId    Int
-  guildId   Int
-  userId    Int
-  messageId String
-  word      Word     @relation(fields: [wordId], references: [id])
-  guild     Guild    @relation(fields: [guildId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  occurredAt DateTime
+  count      Int?
+  wordId     Int
+  guildId    Int
+  userId     Int
+  messageId  String
+  word       Word     @relation(fields: [wordId], references: [id])
+  guild      Guild    @relation(fields: [guildId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 }

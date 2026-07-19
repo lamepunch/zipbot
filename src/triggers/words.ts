@@ -68,6 +68,7 @@ export default async function recordOccurrences(message: Message) {
         matchedWords.map(({ word, count }) =>
           prisma.occurrence.create({
             data: {
+              occurredAt: message.createdAt,
               count: count > 1 ? count : null,
               word: { connect: { id: word.id } },
               guild: { connect: { id: word.guildId } },
