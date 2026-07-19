@@ -48,7 +48,7 @@ async function getActiveWords(snowflakeId: string): Promise<ActiveWord[]> {
 export default async function recordOccurrences(message: Message) {
   let { content, author, guild } = message;
   if (guild === null) {
-    return [];
+    return { matched: [], created: [] };
   }
 
   let words = await getActiveWords(guild.id);
@@ -61,15 +61,26 @@ export default async function recordOccurrences(message: Message) {
     }
   }
 
+  // Only record matched words that don't already have an occurrence for this message
+  let created: typeof matchedWords = [];
   if (matchedWords.length > 0) {
+    let existing = await prisma.occurrence.findMany({
+      where: { messageId: message.id },
+      select: { wordId: true },
+    });
+    let recorded = new Set(existing.map(({ wordId }) => wordId));
+    created = matchedWords.filter(({ word }) => !recorded.has(word.id));
+  }
+
+  if (created.length > 0) {
     log.info(
-      { count: matchedWords.length, messageId: message.id },
+      { count: created.length, messageId: message.id },
       "Recording word occurrences",
     );
 
     try {
       await prisma.$transaction(
-        matchedWords.map(({ word, count }) =>
+        created.map(({ word, count }) =>
           prisma.occurrence.create({
             data: {
               occurredAt: message.createdAt,
@@ -99,5 +110,5 @@ export default async function recordOccurrences(message: Message) {
     }
   }
 
-  return matchedWords;
+  return { matched: matchedWords, created };
 }

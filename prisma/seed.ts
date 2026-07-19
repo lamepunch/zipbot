@@ -26,10 +26,11 @@ async function main() {
 
   // Add the default reaction category
   let unzipCategory = await prisma.category.upsert({
-    where: { name: "Unzips" },
+    where: { name_objectType: { name: "Unzips", objectType: "IMAGE" } },
     update: {},
     create: {
       name: "Unzips",
+      objectType: "IMAGE",
     },
   });
 

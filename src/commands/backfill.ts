@@ -2,7 +2,6 @@ import { MessageContextMenuCommandInteraction, MessageFlags } from "discord.js";
 
 import type { Command } from "../types.js";
 
-import prisma from "../prisma.js";
 import recordOccurrences from "../triggers/words.js";
 
 const BackfillCommand: Command<MessageContextMenuCommandInteraction> = {
@@ -24,19 +23,16 @@ const BackfillCommand: Command<MessageContextMenuCommandInteraction> = {
       return;
     }
 
-    let existing = await prisma.occurrence.findFirst({
-      where: { messageId: message.id },
-    });
-    if (existing !== null) {
+    let { matched, created } = await recordOccurrences(message);
+    if (matched.length === 0) {
+      await reply("No active tracked words matched this message.");
+    } else if (created.length === 0) {
       await reply("Occurrences for this message have already been recorded.");
-      return;
-    }
-
-    let matched = await recordOccurrences(message);
-    if (matched.length > 0) {
-      await reply(`Recorded occurrences for ${matched.length} tracked word(s).`);
     } else {
-      await reply("No tracked words matched this message.");
+      let plural = created.length === 1 ? "word" : "words";
+      await reply(
+        `Recorded occurrences for ${created.length} tracked ${plural}.`,
+      );
     }
   },
 };

@@ -96,9 +96,9 @@ All errors from command execution are caught and reported via the logger; slash/
 - `Channel` — text channel belonging to a Guild
 - `Command` — registered command metadata; referenced by invocations
 - `Invocation` — records each command execution, optionally with guild, channel, and reaction image
-- `Category` / `Image` — taxonomy + asset records for reaction images
+- `Category` / `Image` — taxonomy + asset records; `Category.objectType` (`ObjectType` enum: `IMAGE` | `WORD`) says what a category classifies, names unique per type (`@@unique([name, objectType])`)
 - `Quote` — saved message with author, submitter, channel, guild, and content
-- `Word` — per-guild tracked term with a regex and `isActive` flag (`@@unique([guildId, name])`)
+- `Word` — per-guild tracked term with a regex, `isActive` flag, and optional `categoryId` (`@@unique([guildId, name])`)
 - `Occurrence` — records each match of a `Word` against a message
 
 **Critical Pattern: connectOrCreate**
@@ -145,8 +145,8 @@ Active words for a guild are read from an in-memory cache (5-minute TTL, refille
 
 **backfill.ts** (message context menu):
 - Right-click a message to run the word-filter check on it after the fact
-- Skips (with an ephemeral reply) if the message already has any `Occurrence` rows
-- Otherwise calls `recordOccurrences` and reports how many tracked words matched
+- Dedupe is per-word: matched words that already have an `Occurrence` row for the message are skipped, so reruns pick up words created since the last run
+- Replies with how many words were newly recorded, that everything was already recorded, or that nothing matched
 
 ## Environment Variables
 
