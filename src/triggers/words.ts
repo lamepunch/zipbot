@@ -7,15 +7,19 @@ import type { Word } from "../generated/prisma/client.js";
 import prisma from "../prisma.js";
 import log from "../logger.js";
 
+const { NODE_ENV } = process.env;
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
 type ActiveWord = { word: Word; pattern: RegExp };
 let cache = new Map<string, { entries: ActiveWord[]; cachedAt: number }>();
 
 async function getActiveWords(snowflakeId: string): Promise<ActiveWord[]> {
-  let cached = cache.get(snowflakeId);
-  if (cached && Date.now() - cached.cachedAt < FIVE_MINUTES_IN_MS) {
-    return cached.entries;
+  // Skip the cache during development so word changes show up immediately
+  if (NODE_ENV !== "development") {
+    let cached = cache.get(snowflakeId);
+    if (cached && Date.now() - cached.cachedAt < FIVE_MINUTES_IN_MS) {
+      return cached.entries;
+    }
   }
 
   let words = await prisma.word.findMany({
