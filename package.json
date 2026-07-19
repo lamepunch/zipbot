@@ -11,7 +11,8 @@
     "start:dev": "bun --watch --trace-warnings ./src/index.ts",
     "prisma:generate": "prisma generate --sql",
     "prisma:migrate": "prisma migrate deploy",
-    "task:fetcher": "bun ./src/tasks/fetcher.ts"
+    "task:fetcher": "bun ./src/tasks/fetcher.ts",
+    "task:register": "bun ./src/tasks/register.ts"
   },
   "author": "grenuttag <me@grenuttag.com>",
   "license": "ISC",
