@@ -34,8 +34,8 @@ async function main() {
   });
 
   // Fill the default category with images if it has none
-  let existing = await prisma.image.count();
-  if (existing === 0) {
+  let images = await prisma.image.count();
+  if (images === 0) {
     await prisma.image.createMany({
       data: Array.from({ length: IMAGE_COUNT }, () => ({
         categoryId: unzipCategory.id,
