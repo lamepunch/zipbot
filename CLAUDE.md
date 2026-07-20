@@ -98,7 +98,7 @@ All errors from command execution are caught and reported via the logger; slash/
 - `Invocation` — records each command execution, optionally with guild, channel, and reaction image
 - `Category` / `Image` — taxonomy + asset records; `Category.objectType` (`ObjectType` enum: `IMAGE` | `WORD`) says what a category classifies, names unique per type (`@@unique([name, objectType])`)
 - `Quote` — saved message with author, submitter, channel, guild, and content
-- `Word` — per-guild tracked term, either an obscenity (`name` is an obscenity-dataset word, `regex` null) or a custom pattern (`regex` set); has `isActive` and optional `categoryId` (`@@unique([guildId, name])`)
+- `Word` — tracked term, either an obscenity (`name` is an obscenity-dataset word, `regex` null) or a custom pattern (`regex` set); `guildId` null means global (matched in every server, occurrences still attributed to the message's guild); has `isActive`, optional `categoryId`, and a unique `name`
 - `Occurrence` — records each match of a `Word` against a message
 
 **Critical Pattern: connectOrCreate**

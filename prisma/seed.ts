@@ -64,60 +64,52 @@ async function main() {
     },
   });
 
-  // Add the default reaction category
-  let unzipCategory = await prisma.category.upsert({
-    where: { name_objectType: { name: "Unzips", objectType: "IMAGE" } },
-    update: {},
-    create: {
-      name: "Unzips",
-      objectType: "IMAGE",
-    },
+  // Create the 3 categories if they don't exist
+  await prisma.category.createMany({
+    data: [
+      { name: "Unzips", objectType: "IMAGE" },
+      { name: "Obscenities", objectType: "WORD" },
+      { name: "Slurs", objectType: "WORD" },
+    ],
+    skipDuplicates: true,
   });
+
+  // Get the categories by name
+  let categories = Object.fromEntries(
+    (await prisma.category.findMany()).map((c) => [c.name.toLowerCase(), c]),
+  );
 
   // Fill the default category with images if it has none
   let images = await prisma.image.count();
   if (images === 0) {
     await prisma.image.createMany({
       data: Array.from({ length: IMAGE_COUNT }, () => ({
-        categoryId: unzipCategory.id,
+        categoryId: categories["unzips"].id,
       })),
     });
+  } else {
+    console.log("Images already exist, skipping creation");
   }
 
-  // Add the categories that classify tracked words
-  let slurCategory = await prisma.category.upsert({
-    where: { name_objectType: { name: "Slurs", objectType: "WORD" } },
-    update: {},
-    create: {
-      name: "Slurs",
-      objectType: "WORD",
-    },
-  });
-
-  let obscenityCategory = await prisma.category.upsert({
-    where: { name_objectType: { name: "Obscenities", objectType: "WORD" } },
-    update: {},
-    create: {
-      name: "Obscenities",
-      objectType: "WORD",
-    },
-  });
-
-  // Track every obscenity-dataset word, categorizing the slurs
-  for (let name of getProfanities()) {
-    let categoryId = SLURS.includes(name)
-      ? slurCategory.id
-      : obscenityCategory.id;
-
-    await prisma.word.upsert({
-      where: { guildId_name: { guildId: testServer.id, name } },
-      update: { categoryId },
-      create: {
-        name,
-        guildId: testServer.id,
-        categoryId,
+  // Track every obscenity-dataset word globally, categorizing the slurs, if not already done
+  let existingWords = await prisma.word.count({
+    where: {
+      categoryId: {
+        in: [categories["slurs"].id, categories["obscenities"].id],
       },
+    },
+  });
+  if (existingWords === 0) {
+    await prisma.word.createMany({
+      data: [...getProfanities()].map((name) => ({
+        name,
+        categoryId: SLURS.includes(name)
+          ? categories["slurs"].id
+          : categories["obscenities"].id,
+      })),
     });
+  } else {
+    console.log("Words already exist, skipping creation");
   }
 }
 

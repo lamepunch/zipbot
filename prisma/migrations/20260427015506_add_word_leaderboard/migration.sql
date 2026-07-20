@@ -3,7 +3,7 @@ CREATE TABLE "Word" (
     "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "name" TEXT,
-    "guildId" INTEGER NOT NULL,
+    "guildId" INTEGER,
     "regex" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
 
@@ -25,7 +25,7 @@ CREATE TABLE "Occurrence" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Word_guildId_name_key" ON "Word"("guildId", "name");
+CREATE UNIQUE INDEX "Word_name_key" ON "Word"("name");
 
 -- AddForeignKey
 ALTER TABLE "Word" ADD CONSTRAINT "Word_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

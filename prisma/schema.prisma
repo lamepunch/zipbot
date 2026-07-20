@@ -113,16 +113,14 @@ model Quote {
 model Word {
   id          Int          @id @default(autoincrement())
   createdAt   DateTime     @default(now())
-  name        String?
-  guildId     Int
+  name        String?      @unique
+  guildId     Int?
   regex       String?
   isActive    Boolean      @default(true)
   categoryId  Int?
-  guild       Guild        @relation(fields: [guildId], references: [id])
+  guild       Guild?       @relation(fields: [guildId], references: [id])
   category    Category?    @relation(fields: [categoryId], references: [id])
   occurrences Occurrence[]
-
-  @@unique([guildId, name])
 }
 
 model Occurrence {
