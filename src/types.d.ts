@@ -1,4 +1,5 @@
 import {
+  ChatInputCommandInteraction,
   CommandInteraction,
   MessageContextMenuCommandInteraction,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
@@ -6,7 +7,7 @@ import {
 } from "discord.js";
 
 type CommandTypes =
-  | Command<CommandInteraction>
+  | Command<ChatInputCommandInteraction>
   | Command<MessageContextMenuCommandInteraction>;
 
 interface Command<T> {

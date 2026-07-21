@@ -36,7 +36,7 @@ async function getActiveWords(snowflakeId: string): Promise<ActiveWord[]> {
   let words = await prisma.word.findMany({
     where: {
       isActive: true,
-      guild: { snowflakeId },
+      OR: [{ guildId: null }, { guild: { snowflakeId } }],
     },
   });
 
@@ -137,7 +137,7 @@ export default async function recordOccurrences(message: Message) {
               occurredAt: message.createdAt,
               count: count > 1 ? count : null,
               word: { connect: { id: word.id } },
-              guild: { connect: { id: word.guildId } },
+              guild: { connect: { snowflakeId: guild.id } },
               user: {
                 connectOrCreate: {
                   create: {

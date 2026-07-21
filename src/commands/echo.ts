@@ -1,9 +1,9 @@
-import { CommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 
 import type { Command } from "../types.js";
 import log from "../logger.js";
 
-const EchoCommand: Command<CommandInteraction> = {
+const EchoCommand: Command<ChatInputCommandInteraction> = {
   data: {
     name: "echo",
     description: "Echo a message back into the channel",
@@ -18,7 +18,6 @@ const EchoCommand: Command<CommandInteraction> = {
   },
 
   async execute(interaction) {
-    // @ts-ignore
     let message = interaction.options.getString("message", true);
     let content = `<@${interaction.user.id}> said: ${message}`;
 

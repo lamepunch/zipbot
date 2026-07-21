@@ -1,6 +1,7 @@
 import {
+  APIApplicationCommandOptionChoice,
   APIEmbedField,
-  CommandInteraction,
+  ChatInputCommandInteraction,
   InteractionReplyOptions,
 } from "discord.js";
 
@@ -11,7 +12,7 @@ import prisma from "../prisma.js";
 import log from "../logger.js";
 import { getInvocationLeaderboard } from "../generated/prisma/sql.js";
 
-const LeaderboardCommand: Command<CommandInteraction> = {
+const LeaderboardCommand: Command<ChatInputCommandInteraction> = {
   data: {
     name: "leaderboard",
     description: "See who's the biggest and the baddest",
