@@ -50,6 +50,7 @@ model Channel {
   guild       Guild        @relation(fields: [guildId], references: [id])
   invocations Invocation[]
   quotes      Quote[]
+  occurrences Occurrence[]
 }
 
 model Command {
@@ -131,8 +132,10 @@ model Occurrence {
   wordId     Int
   guildId    Int
   userId     Int
+  channelId  Int
   messageId  String
   word       Word     @relation(fields: [wordId], references: [id])
   guild      Guild    @relation(fields: [guildId], references: [id])
   user       User     @relation(fields: [userId], references: [id])
+  channel    Channel  @relation(fields: [channelId], references: [id])
 }

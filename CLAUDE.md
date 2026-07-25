@@ -99,7 +99,7 @@ All errors from command execution are caught and reported via the logger; slash/
 - `Category` / `Image` — taxonomy + asset records; `Category.objectType` (`ObjectType` enum: `IMAGE` | `WORD`) says what a category classifies, names unique per type (`@@unique([name, objectType])`)
 - `Quote` — saved message with author, submitter, channel, guild, and content
 - `Word` — tracked term, either an obscenity (`name` is an obscenity-dataset word, `regex` null) or a custom pattern (`regex` set); `guildId` null means global (matched in every server, occurrences still attributed to the message's guild); has `isActive`, optional `categoryId`, and a unique `name`
-- `Occurrence` — records each match of a `Word` against a message
+- `Occurrence` — records each match of a `Word` against a message, including the guild, user, and channel it occurred in
 
 **Critical Pattern: connectOrCreate**
 First-time users/channels are handled with Prisma's `connectOrCreate` keyed on `snowflakeId` to avoid duplicate key errors:

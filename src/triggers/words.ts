@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import {
   RegExpMatcher,
   englishDataset,
@@ -80,6 +80,7 @@ export default async function recordOccurrences(message: Message) {
     return { matched: [], created: [] };
   }
 
+  let channel = message.channel as TextChannel;
   let words = await getActiveWords(guild.id);
 
   let found = matcher.getAllMatches(content);
@@ -146,6 +147,16 @@ export default async function recordOccurrences(message: Message) {
                     displayName: author.displayName,
                   },
                   where: { snowflakeId: author.id },
+                },
+              },
+              channel: {
+                connectOrCreate: {
+                  create: {
+                    snowflakeId: channel.id,
+                    name: channel.name,
+                    guild: { connect: { snowflakeId: guild.id } },
+                  },
+                  where: { snowflakeId: channel.id },
                 },
               },
               messageId: message.id,

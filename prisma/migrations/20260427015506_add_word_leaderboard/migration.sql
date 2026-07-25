@@ -19,6 +19,7 @@ CREATE TABLE "Occurrence" (
     "wordId" INTEGER NOT NULL,
     "guildId" INTEGER NOT NULL,
     "userId" INTEGER NOT NULL,
+    "channelId" INTEGER NOT NULL,
     "messageId" TEXT NOT NULL,
 
     CONSTRAINT "Occurrence_pkey" PRIMARY KEY ("id")
@@ -38,3 +39,6 @@ ALTER TABLE "Occurrence" ADD CONSTRAINT "Occurrence_guildId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "Occurrence" ADD CONSTRAINT "Occurrence_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Occurrence" ADD CONSTRAINT "Occurrence_channelId_fkey" FOREIGN KEY ("channelId") REFERENCES "Channel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
