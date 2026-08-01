@@ -1,4 +1,8 @@
-import { CommandInteraction, Snowflake, MessageFlags } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  Snowflake,
+  MessageFlags,
+} from "discord.js";
 
 import type { Command } from "../types.js";
 import { QUOTE_EMBED_TITLES, RESPONSE_COLOR } from "../constants.js";
@@ -8,7 +12,7 @@ import log from "../logger.js";
 
 const constructMention = (emoji: string, id: Snowflake) => `${emoji} <@${id}>`;
 
-const QuoteCommand: Command<CommandInteraction> = {
+const QuoteCommand: Command<ChatInputCommandInteraction> = {
   data: {
     name: "quote",
     description: "Get a random quote",

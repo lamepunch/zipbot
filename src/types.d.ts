@@ -1,21 +1,24 @@
 import {
+  ChatInputCommandInteraction,
   CommandInteraction,
-  ContextMenuInteraction,
   Message,
+  MessageContextMenuCommandInteraction,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
+  RESTPostAPIContextMenuApplicationCommandsJSONBody,
 } from "discord.js";
 
 type CommandTypes =
-  | Command<Message>
-  | Command<CommandInteraction>
-  | Command<ContextMenuInteraction>;
+  | Command<ChatInputCommandInteraction>
+  | Command<MessageContextMenuCommandInteraction>;
 
 interface Command<T> {
-  data: any;
+  data: T extends MessageContextMenuCommandInteraction
+    ? RESTPostAPIContextMenuApplicationCommandsJSONBody
+    : RESTPostAPIChatInputApplicationCommandsJSONBody;
   execute: (interaction: T) => Promise<void>;
 }
 
-interface LeaderboardEntry {
-  position: number;
-  username: string;
-  invocations: number;
+interface Extension {
+  commands?: CommandTypes[];
+  triggers?: ((message: Message) => Promise<unknown>)[];
 }

@@ -6,10 +6,17 @@ datasource db {
 }
 
 generator client {
-  provider     = "prisma-client"
-  output       = "../src/generated/prisma"
-  moduleFormat = "esm"
-  engineType   = "client"
+  provider        = "prisma-client"
+  previewFeatures = ["typedSql"]
+  output          = "../src/generated/prisma"
+  moduleFormat    = "esm"
+  engineType      = "client"
+}
+
+enum ObjectType {
+  IMAGE
+  WORD
+  COMMAND
 }
 
 model Guild {
@@ -20,6 +27,8 @@ model Guild {
   channels    Channel[]
   invocations Invocation[]
   quotes      Quote[]
+  words       Word[]
+  occurrences Occurrence[]
 }
 
 model User {
@@ -30,6 +39,7 @@ model User {
   invocations Invocation[]
   quotes      Quote[]
   submissions Quote[]      @relation("Submitter")
+  occurrences Occurrence[]
 }
 
 model Channel {
@@ -40,6 +50,7 @@ model Channel {
   guild       Guild        @relation(fields: [guildId], references: [id])
   invocations Invocation[]
   quotes      Quote[]
+  occurrences Occurrence[]
 }
 
 model Command {
@@ -65,9 +76,13 @@ model Invocation {
 }
 
 model Category {
-  id     Int     @id @default(autoincrement())
-  name   String  @unique
-  images Image[]
+  id         Int        @id @default(autoincrement())
+  name       String
+  objectType ObjectType @default(IMAGE)
+  images     Image[]
+  words      Word[]
+
+  @@unique([name, objectType])
 }
 
 model Image {
@@ -94,4 +109,33 @@ model Quote {
   submitter   User     @relation(name: "Submitter", fields: [submitterId], references: [id], onUpdate: NoAction)
   guild       Guild    @relation(fields: [guildId], references: [id], onUpdate: NoAction)
   channel     Channel  @relation(fields: [channelId], references: [id], onUpdate: NoAction)
+}
+
+model Word {
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now())
+  name        String?      @unique
+  guildId     Int?
+  regex       String?
+  isActive    Boolean      @default(true)
+  categoryId  Int?
+  guild       Guild?       @relation(fields: [guildId], references: [id])
+  category    Category?    @relation(fields: [categoryId], references: [id])
+  occurrences Occurrence[]
+}
+
+model Occurrence {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  occurredAt DateTime
+  count      Int?
+  wordId     Int
+  guildId    Int
+  userId     Int
+  channelId  Int
+  messageId  String
+  word       Word     @relation(fields: [wordId], references: [id])
+  guild      Guild    @relation(fields: [guildId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  channel    Channel  @relation(fields: [channelId], references: [id])
 }

@@ -2,6 +2,9 @@ node_modules/
 dist/
 tsconfig.tsbuildinfo
 
+# Runtime-loaded extensions, kept in a separate private repository
+/extensions/
+
 src/generated/prisma/
 .env
 .env.development

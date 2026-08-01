@@ -1,0 +1,44 @@
+-- CreateTable
+CREATE TABLE "Word" (
+    "id" SERIAL NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "name" TEXT,
+    "guildId" INTEGER,
+    "regex" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "Word_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Occurrence" (
+    "id" SERIAL NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "occurredAt" TIMESTAMP(3) NOT NULL,
+    "count" INTEGER,
+    "wordId" INTEGER NOT NULL,
+    "guildId" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "channelId" INTEGER NOT NULL,
+    "messageId" TEXT NOT NULL,
+
+    CONSTRAINT "Occurrence_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Word_name_key" ON "Word"("name");
+
+-- AddForeignKey
+ALTER TABLE "Word" ADD CONSTRAINT "Word_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Occurrence" ADD CONSTRAINT "Occurrence_wordId_fkey" FOREIGN KEY ("wordId") REFERENCES "Word"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Occurrence" ADD CONSTRAINT "Occurrence_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Occurrence" ADD CONSTRAINT "Occurrence_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Occurrence" ADD CONSTRAINT "Occurrence_channelId_fkey" FOREIGN KEY ("channelId") REFERENCES "Channel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

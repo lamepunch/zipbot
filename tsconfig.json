@@ -3,14 +3,13 @@
     "incremental": true,
     "target": "esnext",
     "module": "nodenext",
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "noEmit": true,
     "strict": true,
     "lib": ["esnext"],
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "extensions/**/*"],
   "exclude": ["node_modules"]
 }

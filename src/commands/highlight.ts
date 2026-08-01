@@ -13,7 +13,6 @@ import log from "../logger.js";
 const HighlightCommand: Command<MessageContextMenuCommandInteraction> = {
   data: {
     name: "Highlight",
-    description: "Add a quote to the database",
     type: 3,
     default_permission: false,
   },
